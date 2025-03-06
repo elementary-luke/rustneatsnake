@@ -5,7 +5,6 @@ pub enum NeuronType
     Hidden,
     Output,
 }
-
 pub struct Neuron 
 {
     pub id : usize,
