@@ -248,23 +248,32 @@ impl Network
         link.nudge_link();
     }
 
-    pub fn mutate(&mut self, innovation_count : &mut usize, change_map : &mut HashMap<(Mutation, usize, usize), usize>)//, changehash : &mut usize)
+    pub fn mutate(&mut self, innovation_count : &mut usize, change_map : &mut HashMap<(Mutation, usize, usize), usize>)
     {
-        let pick : f32 = random_range(0.0..1.0);
-        match pick
+        let prob_sum : f32 = Config::mutation_probabilities.iter().map(|(muta, prob)| prob).sum::<f32>();
+        let mut pick : f32 = random_range(0.0..prob_sum);
+
+        for (muta, prob) in Config::mutation_probabilities
         {
-            0.0..=0.3 => self.add_link(),
-            0.0..=0.4 => self.remove_link(),
-            0.4..=0.55 => self.add_hidden_neuron(innovation_count, change_map),
-            0.55..=0.6 => self.remove_hidden_neuron(),
-            0.6..=0.7 => self.reset_link_weight(),
-            0.7..=1.0 => self.nudge_link(),
-            _ => ()
+            pick -= prob;
+            if prob <= 0.0
+            {
+                match muta 
+                {
+                    Mutation::add_link => self.add_link(),
+                    Mutation::remove_link => self.remove_link(),
+                    Mutation::add_neuron => self.add_hidden_neuron(innovation_count, change_map),
+                    Mutation::remove_neuron => self.remove_hidden_neuron(),
+                    Mutation::reset_link => self.reset_link_weight(),
+                    Mutation::nudge_link  => self.nudge_link(),
+                }
+                return;
+            }
         }
 
     }
 
-    //TODO create 
+    //TODO toggle link 
 
     pub fn draw(&self)
     {
