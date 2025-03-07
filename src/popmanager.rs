@@ -4,6 +4,7 @@ use crate::neuron::*;
 use crate::network::*;
 use crate::config::*;
 use strum::IntoEnumIterator;
+use rand::prelude::IndexedRandom;
 use std::collections::HashMap;
 
 pub struct PopManager 
@@ -39,6 +40,17 @@ impl PopManager
             net.set_up_intial_links();
             self.networks.push(net);
         }
+    }
+
+    pub fn add_offspring(&mut self)
+    {
+        if self.networks.len() == 0
+        {
+            return;
+        }
+        let p1 = self.networks.choose(&mut rand::rng()).unwrap();
+        let p2 = self.networks.choose(&mut rand::rng()).unwrap();
+        self.networks.push(p1.crossover(&p2));
     }
 
     pub fn mutate_population(&mut self, innovation_count : &mut usize, change_map : &mut HashMap<(Mutation, usize, usize), usize>)

@@ -1,4 +1,5 @@
 use crate::link::*;
+use crate::neuron;
 use crate::neuron::*;
 use std::collections::HashMap;
 use std::thread::current;
@@ -18,7 +19,8 @@ use petgraph::dot::Dot;
 pub struct Network 
 {
     pub neurons : HashMap<usize, Neuron>,
-    pub links : Vec<Link>
+    pub links : Vec<Link>,
+    pub fitness : f32
 }
 
 impl Network 
@@ -274,6 +276,7 @@ impl Network
                     Mutation::remove_neuron => self.remove_hidden_neuron(),
                     Mutation::reset_link => self.reset_link_weight(),
                     Mutation::nudge_link  => self.nudge_link(),
+                    Mutation::none  => (),
                 }
                 return;
             }
@@ -326,13 +329,68 @@ impl Network
 
         println!("{}", Dot::new(&g));
     }
+
+    pub fn crossover(&self, other : &Network) -> Network
+    {
+        let dominant : &Network;
+        let recessive : &Network;
+        let mut offspring : Network = Network {..Default::default()};
+        if self.fitness > other.fitness
+        {
+            dominant = self;
+            recessive = other;
+        }
+        else
+        {
+            dominant = other;
+            recessive = self;
+        }
+
+        for neuron_id in dominant.neurons.keys()
+        {
+            let dominant_neuron = dominant.get_neuron(*neuron_id);
+            if recessive.neurons.contains_key(neuron_id)
+            {
+                let recessive_neuron = dominant.get_neuron(*neuron_id);
+                let mut offspring_neuron = dominant_neuron.clone();
+                offspring_neuron.activation = 0.0;
+                offspring_neuron.bias = *vec![dominant_neuron.bias, recessive_neuron.bias].choose(&mut rand::rng()).unwrap();
+                offspring.neurons.insert(*neuron_id, offspring_neuron);
+                //TODO choose random activation function
+            }
+            else
+            {
+                let mut offspring_neuron = dominant_neuron.clone();
+                offspring_neuron.activation = 0.0;
+                offspring.neurons.insert(*neuron_id, offspring_neuron);
+            }
+        }
+
+        for dominant_link in dominant.links.clone()
+        {
+            let recessive_link = recessive.links.iter().find(|link| link.from == dominant_link.from && link.to == dominant_link.to);
+            if recessive_link.is_some()
+            {
+                let mut offspring_link = dominant_link.clone();
+                offspring_link.weight = *vec![dominant_link.weight, recessive_link.unwrap().weight].choose(&mut rand::rng()).unwrap();
+                offspring_link.enabled = *vec![dominant_link.enabled, recessive_link.unwrap().enabled].choose(&mut rand::rng()).unwrap();
+                offspring.links.push(offspring_link);
+            }
+            else
+            {
+                offspring.links.push(dominant_link.clone());
+            }
+        }
+
+        return offspring;
+    }
 }
 
 impl Default for Network 
 {
     fn default() -> Network 
     {
-        Network {neurons : HashMap::new(), links : vec![]}
+        Network {neurons : HashMap::new(), links : vec![], fitness : 0.0}
     }
 }
 
@@ -350,4 +408,5 @@ pub enum Mutation
     remove_link,
     reset_link,
     nudge_link,
+    none,
 }
