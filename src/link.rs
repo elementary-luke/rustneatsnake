@@ -1,7 +1,7 @@
 use crate::config::Config;
 use rand_distr::{Distribution, Normal};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Link 
 {
     pub id : usize,
@@ -25,7 +25,6 @@ impl Link
     pub fn set_random_weight(&mut self)
     {
         let normal = Normal::new(Config::link_mean, Config::link_sigma).unwrap();
-        
         self.weight = normal.sample(&mut rand::rng()).clamp(Config::min_link_weight, Config::max_link_weight);
     }
 

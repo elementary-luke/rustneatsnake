@@ -1,10 +1,11 @@
-#[derive(PartialEq, PartialOrd)]
+#[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
 pub enum NeuronType 
 {
     Input,
     Hidden,
     Output,
 }
+#[derive(Debug, Clone, Copy)]
 pub struct Neuron 
 {
     pub id : usize,

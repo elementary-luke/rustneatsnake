@@ -1,4 +1,3 @@
-use crate::link;
 use crate::link::*;
 use crate::neuron::*;
 use std::collections::HashMap;
@@ -14,6 +13,8 @@ use rand_distr::{Distribution, Normal};
 use petgraph::prelude::Graph;
 use petgraph::prelude::NodeIndex;
 use petgraph::dot::Dot;
+
+#[derive(Debug, Clone)]
 pub struct Network 
 {
     pub neurons : HashMap<usize, Neuron>,
@@ -78,6 +79,10 @@ impl Network
 
     pub fn calculate_output(&mut self) 
     {
+        for neuron in self.neurons.values_mut().filter(|neuron| neuron.kind == NeuronType::Output)
+        {
+            neuron.activation = 0.0;
+        }
         let compute_order : Vec<usize> = self.topological_sort();
         for i in compute_order
         {
@@ -128,7 +133,10 @@ impl Network
         {
             return;
         }
-        self.links.push(Link {from : input_id, to : output_id, weight : random_range(-1.0..=1.0), ..Default::default()}) 
+
+        let mut link = Link {from : input_id, to : output_id, ..Default::default()};
+        link.set_random_weight();
+        self.links.push(link);
     }
 
     pub fn cycle(&self, from_id : usize, to_id : usize) -> bool
@@ -188,8 +196,8 @@ impl Network
         }
         
         self.neurons.insert(new_neuron_id, Neuron {id : new_neuron_id, activation : 0.5, kind : NeuronType::Hidden, ..Default::default()});
-        println!("{:?}",self.neurons.keys());
         
+        //first link has weight of 1 and second has old weight to preserve how the network works
         let from_id : usize = old_link.from;
         let to_id : usize = old_link.to;
         let old_weight : f32 = old_link.weight;
@@ -256,7 +264,7 @@ impl Network
         for (muta, prob) in Config::mutation_probabilities
         {
             pick -= prob;
-            if prob <= 0.0
+            if pick <= 0.0
             {
                 match muta 
                 {
@@ -274,6 +282,20 @@ impl Network
     }
 
     //TODO toggle link 
+
+
+    pub fn set_up_intial_links(&mut self)
+    {
+        for i in self.neurons.iter().filter(|(id, neuron)| neuron.kind == NeuronType::Input).map(|(id, neuron)| id)
+        {
+            for j in self.neurons.iter().filter(|(id, neuron)| neuron.kind == NeuronType::Output).map(|(id, neuron)| id)
+            {
+                let mut link = Link {from : *i, to : *j, ..Default::default()};
+                link.set_random_weight();
+                self.links.push(link);
+            }
+        }
+    }
 
     pub fn draw(&self)
     {
