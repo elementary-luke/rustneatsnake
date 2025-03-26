@@ -1,3 +1,5 @@
+//to use raylib, installed cmake 3.31 and most recent llvm. MAKE SURE PATH VARS ADDED IN INSTALLATION
+
 use crate::network::*;
 use strum_macros::EnumIter;
 
@@ -16,6 +18,9 @@ impl Config
     pub const link_mutate_power : f32 = 1.2;
     pub const input_count : usize = 3;
     pub const output_count : usize = 3;
+
+    pub const grid_width : usize = 20;
+    pub const grid_height : usize = 20;
 
     //relative probabilites, don't necessarily have to add up to 1
     pub const mutation_probabilities : [(Mutation, f32); 7] = [
