@@ -9,6 +9,8 @@ use popmanager::PopManager;
 use raylib::{prelude::*};
 use grid::Grid;
 
+use crate::vec2::Vec2i;
+
 mod link;
 mod neuron;
 mod network;
@@ -24,8 +26,10 @@ fn main()
     let mut innovation_count : usize = Config::input_count + Config::output_count;
 
     let mut manager = PopManager{..Default::default()};
+    manager.add(100);
+    manager.simulate_population();
+    manager.networks[0].draw();
     let mut gr = Grid::new();
-    gr.print_grid();
 
     let (mut rl, thread) = raylib::init()
         .size(720, 720)
@@ -35,7 +39,12 @@ fn main()
     rl.set_target_fps(5);
 
     while !rl.window_should_close() {
-        gr.step(&rl);
+        // let desire = Vec2i::from((
+        //     rl.is_key_down(KeyboardKey::KEY_D) as i16 - rl.is_key_down(KeyboardKey::KEY_A) as i16,
+        //     rl.is_key_down(KeyboardKey::KEY_S) as i16 - rl.is_key_down(KeyboardKey::KEY_W) as i16
+        // ));
+        // gr.step(desire);
+
         
 
         let mut d = rl.begin_drawing(&thread);

@@ -1,9 +1,9 @@
-use std::thread::spawn;
+use std::{cmp::{max, min}, thread::spawn};
 
 use rand::random_range;
 use raylib::prelude::*;
 
-use crate::{config::Config, vec2::Vec2i};
+use crate::{config::{self, Config}, vec2::Vec2i};
 
 pub struct Grid 
 {
@@ -11,6 +11,10 @@ pub struct Grid
     segments : Vec<Vec2i>,
     dir : Vec2i,
     fruit_pos : Vec2i,
+    pub running : bool,
+    fruits_eaten : i16,
+    steps_taken : i16,
+    steps_without_fruit : i16,
 }
 
 impl Grid 
@@ -39,20 +43,23 @@ impl Grid
         let head_pos : Vec2i = Vec2i::from((Config::grid_width as i16 / 2 , Config::grid_height as i16 / 2));
         data[head_pos.y as usize][head_pos.x as usize] = Object::Head;
 
-        let mut grid = Grid {data : data, segments : vec![head_pos], dir : dir, fruit_pos : Vec2i::from((0, 0))};
+        let mut grid = Grid {data : data, segments : vec![head_pos], dir : dir, fruit_pos : Vec2i::from((0, 0)), running : true, fruits_eaten : 0, steps_taken : 0, steps_without_fruit : 0};
 
         grid.spawn_fruit();
 
         return grid;
     }
 
+    pub fn calculate_fitness(&self) -> f32 {
+        return self.fruits_eaten as f32 * Config::fruit_value + self.steps_taken as f32 * Config::step_value
+    }
+
+    
+
     //make sure direction can only change according to the rules of snake i.e. cant go from moving right to left
-    fn change_direction(&mut self, rl : &RaylibHandle)
+    fn change_direction(&mut self, desire : Vec2i)
     {
-        let desire = Vec2i::from((
-            rl.is_key_down(KeyboardKey::KEY_D) as i16 - rl.is_key_down(KeyboardKey::KEY_A) as i16,
-            rl.is_key_down(KeyboardKey::KEY_S) as i16 - rl.is_key_down(KeyboardKey::KEY_W) as i16
-        ));
+        
 
         let moving_vertically = self.dir.x == 0;
 
@@ -72,9 +79,20 @@ impl Grid
         }
     }
 
-    pub fn step(&mut self, rl : &RaylibHandle)
+    pub fn step(&mut self, desire : Vec2i)
     {
-        self.change_direction(rl);
+        if !self.running
+        {
+            return
+        }
+
+        if self.steps_without_fruit >= (Config::grid_height * Config::grid_width) as i16
+        {
+            self.running = false;
+            return;
+        }
+        
+        self.change_direction(desire);
 
         let old_head = self.segments[0];
         let new_head = old_head + self.dir;
@@ -93,6 +111,11 @@ impl Grid
         //leave early if going into body or wall
         if going_into == Object::Body || going_into == Object::Wall 
         {
+            //put back head if run into wall
+            self.data[old_head.y as usize][old_head.x as usize] = Object::Head;
+            self.segments.push(old_head);
+
+            self.running = false;
             return;
         }
         
@@ -109,8 +132,12 @@ impl Grid
         //spawn new fruit if eaten
         if growing
         {
+            self.steps_without_fruit = 0;
+            self.fruits_eaten += 1;
             self.spawn_fruit();
         }
+        self.steps_taken = min(500, self.steps_taken + 1);
+        self.steps_without_fruit += 1;
     }
 
 
@@ -168,7 +195,61 @@ impl Grid
                 d.draw_rectangle_rounded(Rectangle{x : xpos, y : ypos, width, height : width}, 0.5, 10, col);
             }
         }
+    }
 
+    pub fn get_inputs(&self) -> Vec<f32> {
+        let mut inputs : Vec<f32> = vec![0.0; Config::input_count];
+
+        let dirs = vec![Vec2i::from((0, -1)), Vec2i::from((0, 1)), Vec2i::from((-1, 0)), Vec2i::from((1, 0))];
+
+        //fruit
+       for (i, dir) in dirs.iter().enumerate() {
+            let mut pos = self.segments[0] + *dir;
+            let mut found_fruit = false;
+
+            loop {
+                match self.data[pos.y as usize][pos.x as usize] {
+                    Object::Fruit => {
+                        found_fruit = true;
+                        break;
+                    }
+
+                    Object::Wall => {
+                        break;
+                    }
+
+                    _ => {
+                        pos += *dir;
+                    }
+                }
+            }
+
+            inputs[i] = if found_fruit { 1.0 } else { 0.0 };
+        }
+
+        //walls
+        for (i, dir) in dirs.iter().enumerate() {
+            let mut pos = self.segments[0] + *dir;
+            let mut displacement = 1;
+            let mut found_fruit = false;
+
+            loop {
+                match self.data[pos.y as usize][pos.x as usize] {
+                    Object::Wall => {
+                        break;
+                    }
+
+                    _ => {
+                        displacement += 1;
+                        pos += *dir;
+                    }
+                }
+            }
+
+            inputs[i + 4] = displacement as f32 / max(Config::grid_width, Config::grid_height) as f32;
+        }
+
+        return inputs;
     }
 }
 #[derive(Debug, Clone, Copy, Eq, Hash, PartialEq)]

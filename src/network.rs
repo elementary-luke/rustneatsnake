@@ -20,7 +20,7 @@ pub struct Network
 {
     pub neurons : HashMap<usize, Neuron>,
     pub links : Vec<Link>,
-    pub fitness : f32
+    pub fitness : Option<f32>
 }
 
 impl Network 
@@ -36,12 +36,12 @@ impl Network
         {
             neighbours.get_mut(&link.from).unwrap().push(link.to);
         }
-        println!("{:?}", neighbours);
+        // println!("{:?}", neighbours);
 
         //do dfs on all nodes, ordered by number of neighbours
         let mut visit_order : Vec<usize>= self.neurons.keys().map(|x| *x).collect::<Vec<usize>>();
         visit_order.sort_by(|a, b| (neighbours.get(a).unwrap().len() as i32).cmp(&(neighbours.get(b).unwrap().len() as i32)));
-        println!("{:?}", visit_order);
+        // println!("{:?}", visit_order);
 
         let mut compute_order : Vec<usize> = vec![];
         let mut visited : Vec<bool> = vec![false; visit_order.len()];
@@ -49,7 +49,7 @@ impl Network
         //do dfs
         for i in visit_order
         {
-            println!("start {i}");
+            // println!("start {i}");
             let mut q : Vec<usize> =  vec![i];
             let mut stack : Vec<usize>= vec![];
             while !q.is_empty()
@@ -60,7 +60,7 @@ impl Network
                 {
                     continue;
                 }
-                println!("{current}");
+                // println!("{current}");
                 visited[current] = true;
                 stack.insert(0, current);
 
@@ -75,7 +75,7 @@ impl Network
             compute_order.append(&mut stack);
         }
         compute_order.reverse();
-        println!("{:?}", compute_order);
+        // println!("{:?}", compute_order);
         return compute_order;
     }
 
@@ -384,13 +384,32 @@ impl Network
 
         return offspring;
     }
+
+    pub fn set_inputs(&mut self, inputs : Vec<f32>)
+    {
+        for i in 0..Config::input_count
+        {
+            self.get_neuron_mut(i).activation = inputs[i];
+        }
+    }
+
+    pub fn get_outputs(&mut self) -> Vec<f32>
+    {
+        let mut outputs : Vec<f32> = vec![];
+        for i in Config::input_count..(Config::input_count + Config::output_count)
+        {
+            outputs.push(self.get_neuron_mut(i).activation);
+        }
+
+        return outputs;
+    }
 }
 
 impl Default for Network 
 {
     fn default() -> Network 
     {
-        Network {neurons : HashMap::new(), links : vec![], fitness : 0.0}
+        Network {neurons : HashMap::new(), links : vec![], fitness : None}
     }
 }
 

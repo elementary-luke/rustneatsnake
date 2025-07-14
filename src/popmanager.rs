@@ -1,3 +1,4 @@
+use crate::agent::Agent;
 use crate::link::*;
 use crate::network;
 use crate::neuron::*;
@@ -59,5 +60,15 @@ impl PopManager
         {
             self.networks[i].mutate(innovation_count, change_map);
         }
+    }
+
+    pub fn simulate_population(&mut self)
+    {
+        for i in 0..self.networks.len()
+        {
+            let mut agent = Agent::new(self.networks[i].clone());
+            self.networks[i].fitness = Some(agent.evaluate());
+        }
+        println!("{:?}", self.networks[0].fitness);
     }
 }
