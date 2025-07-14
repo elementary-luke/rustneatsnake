@@ -6,8 +6,8 @@ use link::Link;
 use neuron::*;
 use network::Mutation;
 use popmanager::PopManager;
-use raylib::{ffi::SetTargetFPS, prelude::*};
-use grids::Grid;
+use raylib::{prelude::*};
+use grid::Grid;
 
 mod link;
 mod neuron;
@@ -15,7 +15,8 @@ mod network;
 mod config;
 mod popmanager;
 mod vec2;
-mod grids;
+mod grid;
+mod agent;
 
 fn main() 
 {
@@ -23,17 +24,22 @@ fn main()
     let mut innovation_count : usize = Config::input_count + Config::output_count;
 
     let mut manager = PopManager{..Default::default()};
+    let mut gr = Grid::new();
+    gr.print_grid();
 
     let (mut rl, thread) = raylib::init()
-        .size(640, 480)
+        .size(720, 720)
         .title("Hello, World")
         .build();
      
+    rl.set_target_fps(5);
+
     while !rl.window_should_close() {
-        let mut d = rl.begin_drawing(&thread);
+        gr.step(&rl);
         
-         
+
+        let mut d = rl.begin_drawing(&thread);
         d.clear_background(Color::WHITE);
-        d.draw_text("Hello, world!", 12, 12, 20, Color::BLACK);
+        gr.draw(&mut d);
     }
 }

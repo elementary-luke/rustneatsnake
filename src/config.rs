@@ -22,6 +22,8 @@ impl Config
     pub const grid_width : usize = 20;
     pub const grid_height : usize = 20;
 
+    pub const cell_width : i16 = 30; // size of cell displayed
+
     //relative probabilites, don't necessarily have to add up to 1
     pub const mutation_probabilities : [(Mutation, f32); 7] = [
         (Mutation::add_link, 0.15),
