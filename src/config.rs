@@ -20,6 +20,10 @@ impl Config
     pub const input_count : usize = 8;
     pub const output_count : usize = 4;
 
+    //population
+    pub const survival_percentage : f32 = 0.4;
+    pub const population_size : usize = 100;
+
     //  up_fruit_index = 0;
     //  down_fruit_index = 1;
     //  left_fruit_index = 2;

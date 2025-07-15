@@ -10,20 +10,19 @@ use std::collections::HashMap;
 
 pub struct PopManager 
 {
+    pub innovation_count : usize,
+    pub change_map : HashMap<(Mutation, usize, usize), usize>,
     pub networks : Vec<Network>,
-}
-
-impl Default for PopManager 
-{
-    fn default() -> PopManager 
-    {
-        return PopManager {networks : vec![]};
-    }
 }
 
 impl PopManager 
 {
-    pub fn add(&mut self, n : usize)
+    pub fn new() -> PopManager
+    {
+        return PopManager {innovation_count : Config::input_count + Config::output_count, change_map : HashMap::new(), networks : vec![]};
+    }
+
+    pub fn add(&mut self)
     {
         let mut base_net = Network {..Default::default()};
         for i in 0..Config::input_count
@@ -34,13 +33,20 @@ impl PopManager
         {
             base_net.neurons.insert(i, Neuron {id: i, activation: 0.0, kind: NeuronType::Output, ..Default::default()});
         }
+        self.innovation_count = base_net.neurons.len();
 
-        for _ in 0..n
+        for _ in 0..Config::population_size
         {
             let mut net = base_net.clone();
             net.set_up_intial_links();
             self.networks.push(net);
         }
+    }
+
+    pub fn cull_weak(&mut self)
+    {
+        let num_to_keep = (Config::survival_percentage * Config::population_size as f32) as usize;
+        self.networks.truncate(num_to_keep);
     }
 
     pub fn add_offspring(&mut self)
@@ -49,16 +55,31 @@ impl PopManager
         {
             return;
         }
-        let p1 = self.networks.choose(&mut rand::rng()).unwrap();
-        let p2 = self.networks.choose(&mut rand::rng()).unwrap();
-        self.networks.push(p1.crossover(&p2));
+        let mut new_generation : Vec<Network> = vec![];
+
+        //keep top 2 through elitism
+        new_generation.push(self.networks[0].clone());
+        new_generation.push(self.networks[1].clone());
+
+        while new_generation.len() < Config::population_size
+        {
+            let p1 = self.networks.choose(&mut rand::rng()).unwrap();
+            let p2 = self.networks.choose(&mut rand::rng()).unwrap();
+            let mut offspring = p1.crossover(&p2);
+            offspring.mutate(&mut self.innovation_count, &mut self.change_map);
+            new_generation.push(offspring);
+        }
+        self.networks = new_generation;
     }
 
-    pub fn mutate_population(&mut self, innovation_count : &mut usize, change_map : &mut HashMap<(Mutation, usize, usize), usize>)
+
+    //not being used rn
+    //maybe call a bunch of times if the base networks are minimal/empty
+    pub fn mutate_population(&mut self)
     {
         for i in 0..self.networks.len()
         {
-            self.networks[i].mutate(innovation_count, change_map);
+            self.networks[i].mutate(&mut self.innovation_count, &mut self.change_map);
         }
     }
 
@@ -66,9 +87,16 @@ impl PopManager
     {
         for i in 0..self.networks.len()
         {
-            let mut agent = Agent::new(self.networks[i].clone());
-            self.networks[i].fitness = Some(agent.evaluate());
+            if self.networks[i].fitness.is_none() // if kept through elitism, don't need to rerun
+            {
+                let mut agent = Agent::new(self.networks[i].clone());
+                self.networks[i].fitness = Some(agent.evaluate());
+            }
         }
-        println!("{:?}", self.networks[0].fitness);
+    }
+
+    pub fn sort_population_by_fitness(&mut self)
+    {
+        self.networks.sort_by(|a, b| b.fitness.partial_cmp(&a.fitness).unwrap());
     }
 }

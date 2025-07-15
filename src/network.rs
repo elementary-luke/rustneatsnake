@@ -44,8 +44,8 @@ impl Network
         // println!("{:?}", visit_order);
 
         let mut compute_order : Vec<usize> = vec![];
-        let mut visited : Vec<bool> = vec![false; visit_order.len()];
-
+        let mut visited : HashSet<usize> = HashSet::new();
+        
         //do dfs
         for i in visit_order
         {
@@ -56,17 +56,17 @@ impl Network
             {
                 let current : usize = *q.first().unwrap();
                 q.remove(0);
-                if visited[current]
+                if visited.contains(&current)
                 {
                     continue;
                 }
                 // println!("{current}");
-                visited[current] = true;
+                visited.insert(current);
                 stack.insert(0, current);
 
                 for j in neighbours.get(&current).unwrap()
                 {
-                    if !visited[*j]
+                    if !visited.contains(j)
                     {
                         q.insert(0, *j);
                     }

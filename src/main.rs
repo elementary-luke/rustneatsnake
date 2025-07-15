@@ -8,8 +8,9 @@ use network::Mutation;
 use popmanager::PopManager;
 use raylib::{prelude::*};
 use grid::Grid;
+use runner::Runner;
 
-use crate::vec2::Vec2i;
+use crate::{agent::Agent, vec2::Vec2i};
 
 mod link;
 mod neuron;
@@ -19,24 +20,40 @@ mod popmanager;
 mod vec2;
 mod grid;
 mod agent;
+mod runner;
 
 fn main() 
 {
-    let mut change_map : HashMap<(Mutation, usize, usize), usize> = HashMap::new();
-    let mut innovation_count : usize = Config::input_count + Config::output_count;
 
-    let mut manager = PopManager{..Default::default()};
-    manager.add(100);
+    let mut manager = PopManager::new();
+    manager.add();
     manager.simulate_population();
+    manager.sort_population_by_fitness();
+
+    for i in 0..500
+    {
+        if i % 10 == 0
+        {
+            println!("{}, {:?}", i, manager.networks[0].fitness);
+        }
+        manager.cull_weak();
+        manager.add_offspring();
+        manager.simulate_population();
+        manager.sort_population_by_fitness();
+    }
+    
     manager.networks[0].draw();
-    let mut gr = Grid::new();
+    println!("{:?}", manager.networks[0].fitness);
+    println!("{:?}", manager.networks.last().unwrap().fitness);
+    
+    let mut runner = Runner::new(manager.networks[0].clone());
 
     let (mut rl, thread) = raylib::init()
         .size(720, 720)
         .title("Hello, World")
         .build();
      
-    rl.set_target_fps(5);
+    rl.set_target_fps(15);
 
     while !rl.window_should_close() {
         // let desire = Vec2i::from((
@@ -44,11 +61,14 @@ fn main()
         //     rl.is_key_down(KeyboardKey::KEY_S) as i16 - rl.is_key_down(KeyboardKey::KEY_W) as i16
         // ));
         // gr.step(desire);
-
-        
+        if rl.is_key_pressed(KeyboardKey::KEY_R)
+        {
+            runner = Runner::new(manager.networks[0].clone());
+        }
 
         let mut d = rl.begin_drawing(&thread);
         d.clear_background(Color::WHITE);
-        gr.draw(&mut d);
+        runner.draw(&mut d);
+        runner.step();
     }
 }
