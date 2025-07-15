@@ -15,7 +15,7 @@ impl Vec2i
 {
     pub fn from(tuple : (i16, i16)) -> Vec2i
     {
-        Vec2i {x : tuple.0, y : tuple.1}
+        return Vec2i {x : tuple.0, y : tuple.1};
     }
 }
 
@@ -23,13 +23,18 @@ impl Vec2i
 {
     pub fn magnitude(&self) -> i16
     {
-        (self.x.pow(2) + self.y.pow(2)).isqrt()
+        return (self.x.pow(2) + self.y.pow(2)).isqrt();
     }
     pub fn normalised(&self) -> Vec2i
     {
         let x = self.x / self.magnitude();
         let y = self.y / self.magnitude();
-        Vec2i {x, y}
+        return Vec2i {x, y};
+    }
+
+    pub fn add_components(&self) -> i16
+    {
+        return self.x + self.y;
     }
 }
 

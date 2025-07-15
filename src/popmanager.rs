@@ -99,4 +99,8 @@ impl PopManager
     {
         self.networks.sort_by(|a, b| b.fitness.partial_cmp(&a.fitness).unwrap());
     }
+
+    pub fn get_avg_num_neurons(&self) -> f32{
+        return self.networks.iter().map(|net| net.neurons.len()).sum::<usize>() as f32 / self.networks.len() as f32;
+    }
 }

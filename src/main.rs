@@ -30,11 +30,11 @@ fn main()
     manager.simulate_population();
     manager.sort_population_by_fitness();
 
-    for i in 0..500
+    for i in 0..200
     {
         if i % 10 == 0
         {
-            println!("{}, {:?}", i, manager.networks[0].fitness);
+            println!("{}, {:?}, {}", i, manager.networks[0].fitness, manager.get_avg_num_neurons());
         }
         manager.cull_weak();
         manager.add_offspring();
@@ -70,5 +70,6 @@ fn main()
         d.clear_background(Color::WHITE);
         runner.draw(&mut d);
         runner.step();
+        // println!("{:?}", runner.grid.get_inputs());
     }
 }

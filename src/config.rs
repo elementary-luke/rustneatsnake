@@ -17,7 +17,7 @@ impl Config
     pub const min_link_weight : f32 = -1.0;
     pub const max_link_weight : f32 = 1.0;
     pub const link_mutate_power : f32 = 1.2;
-    pub const input_count : usize = 8;
+    pub const input_count : usize = 24;
     pub const output_count : usize = 4;
 
     //population

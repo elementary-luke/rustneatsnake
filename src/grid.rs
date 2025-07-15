@@ -200,10 +200,13 @@ impl Grid
     pub fn get_inputs(&self) -> Vec<f32> {
         let mut inputs : Vec<f32> = vec![0.0; Config::input_count];
 
-        let dirs = vec![Vec2i::from((0, -1)), Vec2i::from((0, 1)), Vec2i::from((-1, 0)), Vec2i::from((1, 0))];
+        let dirs = vec![Vec2i::from((0, -1)), Vec2i::from((0, 1)), Vec2i::from((-1, 0)), Vec2i::from((1, 0)), Vec2i::from((1, -1)), Vec2i::from((1, 1)), Vec2i::from((-1, 1)), Vec2i::from((-1, -1))];
+
+        //normalise vectors by hypoteneuse of grid
+        let max_dist = ((Config::grid_height as f32).powf(2.0) + (Config::grid_width as f32).powf(2.0)).sqrt();
 
         //fruit
-       for (i, dir) in dirs.iter().enumerate() {
+        for (i, dir) in dirs.iter().enumerate() {
             let mut pos = self.segments[0] + *dir;
             let mut found_fruit = false;
 
@@ -224,15 +227,22 @@ impl Grid
                 }
             }
 
-            inputs[i] = if found_fruit { 1.0 } else { 0.0 };
+            if found_fruit
+            {
+                let displacement = (pos - self.segments[0]).magnitude() as f32;
+                inputs[i] = 1.0 - displacement / max_dist;
+            }
+            else
+            {
+                inputs[i] = 0.0;
+            }
+            
         }
 
         //walls
         for (i, dir) in dirs.iter().enumerate() {
             let mut pos = self.segments[0] + *dir;
-            let mut displacement = 1;
-            let mut found_fruit = false;
-
+            
             loop {
                 match self.data[pos.y as usize][pos.x as usize] {
                     Object::Wall => {
@@ -240,13 +250,49 @@ impl Grid
                     }
 
                     _ => {
-                        displacement += 1;
                         pos += *dir;
                     }
                 }
             }
 
-            inputs[i + 4] = displacement as f32 / max(Config::grid_width, Config::grid_height) as f32;
+            let displacement = (pos - self.segments[0]).magnitude() as f32;
+
+            inputs[i + 4] =  displacement / max_dist;
+        }
+
+
+        //wall
+        for (i, dir) in dirs.iter().enumerate() {
+            let mut pos = self.segments[0] + *dir;
+            let mut found_body = false;
+            
+            loop {
+                match self.data[pos.y as usize][pos.x as usize] {
+                    Object::Wall => {
+                        break;
+                    }
+
+                    Object::Body => {
+                        found_body = true;
+                        break;
+                    }
+
+                    _ => {
+                        pos += *dir;
+                    }
+                }
+            }
+
+            if found_body
+            {
+                let displacement = (pos - self.segments[0]).magnitude() as f32;
+                inputs[i + 8] = 1.0 - displacement / max_dist;
+            }
+            else
+            {
+                inputs[i + 8] = 0.0;
+            }
+
         }
 
         return inputs;
