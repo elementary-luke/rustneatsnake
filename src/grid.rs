@@ -229,7 +229,7 @@ impl Grid
 
             if found_fruit
             {
-                let displacement = (pos - self.segments[0]).magnitude() as f32;
+                let displacement = (pos - self.segments[0]).fmagnitude();
                 inputs[i] = 1.0 - displacement / max_dist;
             }
             else
@@ -255,13 +255,13 @@ impl Grid
                 }
             }
 
-            let displacement = (pos - self.segments[0]).magnitude() as f32;
+            let displacement = (pos - self.segments[0]).fmagnitude();
 
-            inputs[i + 4] =  displacement / max_dist;
+            inputs[i + 8] =  displacement / max_dist;
         }
 
 
-        //wall
+        //body
         for (i, dir) in dirs.iter().enumerate() {
             let mut pos = self.segments[0] + *dir;
             let mut found_body = false;
@@ -285,15 +285,22 @@ impl Grid
 
             if found_body
             {
-                let displacement = (pos - self.segments[0]).magnitude() as f32;
-                inputs[i + 8] = 1.0 - displacement / max_dist;
+                let displacement = (pos - self.segments[0]).fmagnitude();
+                inputs[i + 16] = 1.0 - displacement / max_dist;
             }
             else
             {
-                inputs[i + 8] = 0.0;
+                inputs[i + 16] = 0.0;
             }
 
         }
+
+        //direction of snake
+        for (i, dir) in dirs.iter().take(4).enumerate() {
+            inputs[i + 24] = (self.dir == *dir) as i16 as f32
+        }
+
+        inputs[28] = self.segments.len() as f32 / (Config::grid_height * Config::grid_width) as f32;
 
         return inputs;
     }

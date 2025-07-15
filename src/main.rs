@@ -30,7 +30,7 @@ fn main()
     manager.simulate_population();
     manager.sort_population_by_fitness();
 
-    for i in 0..200
+    for i in 0..500
     {
         if i % 10 == 0
         {
@@ -53,7 +53,7 @@ fn main()
         .title("Hello, World")
         .build();
      
-    rl.set_target_fps(15);
+    rl.set_target_fps(60); // 15 is good
 
     while !rl.window_should_close() {
         // let desire = Vec2i::from((
@@ -66,10 +66,17 @@ fn main()
             runner = Runner::new(manager.networks[0].clone());
         }
 
+        // let p = rl.is_key_pressed(KeyboardKey::KEY_SPACE);
+
         let mut d = rl.begin_drawing(&thread);
         d.clear_background(Color::WHITE);
         runner.draw(&mut d);
-        runner.step();
-        // println!("{:?}", runner.grid.get_inputs());
+
+        // if p
+        {
+            runner.step();
+            println!("{:?}", runner.grid.get_inputs());
+        }
+        
     }
 }

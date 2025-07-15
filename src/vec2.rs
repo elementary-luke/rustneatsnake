@@ -4,7 +4,7 @@ use std::ops::Mul;
 use std::ops::AddAssign;
 use std::ops::MulAssign;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Vec2i
 {
     pub x : i16,
@@ -24,6 +24,10 @@ impl Vec2i
     pub fn magnitude(&self) -> i16
     {
         return (self.x.pow(2) + self.y.pow(2)).isqrt();
+    }
+    pub fn fmagnitude(&self) -> f32
+    {
+        return ((self.x as f32).powf(2.0) + (self.y as f32).powf(2.0)).sqrt();
     }
     pub fn normalised(&self) -> Vec2i
     {

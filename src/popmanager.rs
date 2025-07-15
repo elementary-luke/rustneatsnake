@@ -4,6 +4,8 @@ use crate::network;
 use crate::neuron::*;
 use crate::network::*;
 use crate::config::*;
+use rayon::iter::IntoParallelRefMutIterator;
+use rayon::iter::ParallelIterator;
 use strum::IntoEnumIterator;
 use rand::prelude::IndexedRandom;
 use std::collections::HashMap;
@@ -85,14 +87,27 @@ impl PopManager
 
     pub fn simulate_population(&mut self)
     {
-        for i in 0..self.networks.len()
-        {
-            if self.networks[i].fitness.is_none() // if kept through elitism, don't need to rerun
-            {
-                let mut agent = Agent::new(self.networks[i].clone());
-                self.networks[i].fitness = Some(agent.evaluate());
-            }
-        }
+        //singlethreaded
+        // for i in 0..self.networks.len()
+        // {
+        //     if self.networks[i].fitness.is_none() // if kept through elitism, don't need to rerun
+        //     {
+        //         let mut agent = Agent::new(self.networks[i].clone());
+        //         self.networks[i].fitness = Some(agent.evaluate());
+        //     }
+        // }
+
+
+        //multithreaded
+        self.networks
+            .par_iter_mut()
+            .for_each(|net| {
+                if net.fitness.is_none() // if kept through elitism, don't need to rerun
+                {
+                    let mut agent = Agent::new(net.clone());
+                    net.fitness = Some(agent.evaluate());
+                }
+            });
     }
 
     pub fn sort_population_by_fitness(&mut self)
