@@ -150,7 +150,6 @@ impl Grid
             x = random_range(1..=Config::grid_width - 1);
             y = random_range(1..=Config::grid_height - 1);
         }
-
         self.fruit_pos.x = x as i16;
         self.fruit_pos.y = y as i16;
         self.data[y][x] = Object::Fruit;

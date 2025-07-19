@@ -23,7 +23,7 @@ impl Config
     pub const survival_percentage : f32 = 0.4;
     pub const population_size : usize = 100;
     pub const cull_method : i16 = 1; //0:top x% survive, 1: higher fitness means better chance to survive, 2: tournament
-    pub const force_reevalutaion : bool = false; // if true all networks will be evaluated, even if they were evaluated in a previous generation
+    pub const force_reevalutaion : bool = true; // if true all networks will be evaluated, even if they were evaluated in a previous generation
     pub const global_change_map : bool = true; // if true, the same mutation in another generation will have the same innovation_number
 
     pub const randomly_choose_matching_genes : bool = true; // if true randomly choose gene when genes match, otherwise average
@@ -61,8 +61,8 @@ impl Config
         (Mutation::add_neuron, 0.1),
         (Mutation::remove_neuron, 0.05),
         (Mutation::reset_link, 0.1),
-        (Mutation::nudge_link, 0.4),
-        (Mutation::toggle_link, 0.00),
+        (Mutation::nudge_link, 0.37),
+        (Mutation::toggle_link, 0.03),
         (Mutation::none, 0.1),
     ];
 }

@@ -250,6 +250,11 @@ impl Network
 
     pub fn get_neuron_mut(&mut self, i : usize) -> &mut Neuron
     {
+        if self.neurons.get_mut(&i).is_none()
+        {
+            println!("PROBLEM ON {i}");
+            self.draw();
+        }
         return self.neurons.get_mut(&i).unwrap();
     }
 
@@ -363,147 +368,147 @@ impl Network
         println!("{}", Dot::new(&g));
     }
 
-    pub fn crossover(&self, other : &Network, net_count : &mut usize) -> Network
-    {
-        let dominant : &Network;
-        let recessive : &Network;
-        let mut offspring : Network = Network::new(*net_count);
-        if self.fitness > other.fitness
-        {
-            dominant = self;
-            recessive = other;
-        }
-        else
-        {
-            dominant = other;
-            recessive = self;
-        }
-
-        for neuron_id in dominant.neurons.keys()
-        {
-            let dominant_neuron = dominant.get_neuron(*neuron_id);
-            if recessive.neurons.contains_key(neuron_id)
-            {
-                let recessive_neuron = dominant.get_neuron(*neuron_id);
-                let mut offspring_neuron = dominant_neuron.clone();
-                offspring_neuron.activation = 0.0;
-                offspring_neuron.bias = *vec![dominant_neuron.bias, recessive_neuron.bias].choose(&mut rand::rng()).unwrap();
-                offspring.neurons.insert(*neuron_id, offspring_neuron);
-                //TODO choose random activation function
-            }
-            else
-            {
-                let mut offspring_neuron = dominant_neuron.clone();
-                offspring_neuron.activation = 0.0;
-                offspring.neurons.insert(*neuron_id, offspring_neuron);
-            }
-        }
-
-        for dominant_link in dominant.links.clone()
-        {
-            let recessive_link = recessive.links.iter().find(|link| link.from == dominant_link.from && link.to == dominant_link.to);
-            if recessive_link.is_some()
-            {
-                let mut offspring_link = dominant_link.clone();
-                offspring_link.weight = *vec![dominant_link.weight, recessive_link.unwrap().weight].choose(&mut rand::rng()).unwrap();
-                offspring_link.enabled = *vec![dominant_link.enabled, recessive_link.unwrap().enabled].choose(&mut rand::rng()).unwrap();
-                offspring.links.push(offspring_link);
-            }
-            else
-            {
-                offspring.links.push(dominant_link.clone());
-            }
-        }
-
-        return offspring;
-    }
-
-    // pub fn crossover(&self, other : &Network, net_count :&mut usize) -> Network
+    // pub fn crossover(&self, other : &Network, net_count : &mut usize) -> Network
     // {
-    //     if self.id == other.id
-    //     {
-    //         return self.clone();
-    //     }
-
+    //     let mut offspring : Network = Network::new(*net_count);
     //     let (dominant, recessive) : (&Network, &Network)= if self.fitness.unwrap_or_default() > other.fitness.unwrap_or_default()  {
     //         (self, other)
     //     } else {
     //         (other, self)
     //     };
 
-    //     let mut offspring : Network = Network::new(*net_count);
-    //     *net_count += 1;
-
-    //     let mut neurons_used : HashSet<usize> = HashSet::new();
-
-    //     //TODO maybe use hashsets instead and instersections like in get_genetic_distance
-    //     let all_innovation_numbers: Vec<usize> = dominant.links
-    //         .iter()
-    //         .chain(recessive.links.iter())
-    //         .map(|link| link.id)
-    //         .collect::<HashSet<usize>>()
-    //         .into_iter()
-    //         .collect::<Vec<usize>>();   
-
-    //     for id in all_innovation_numbers
+    //     for neuron_id in dominant.neurons.keys()
     //     {
-    //         match (dominant.get_link(id), recessive.get_link(id))
+    //         let dominant_neuron = dominant.get_neuron(*neuron_id);
+    //         if recessive.neurons.contains_key(neuron_id)
     //         {
-    //             (Some(d), Some(r)) => {
-    //                 let mut new_link = if random_range(0..=1) == 0 {
-    //                     d.clone()
-    //                 } else {
-    //                     r.clone()
-    //                 };
-                    
-    //                 if d.enabled != r.enabled
-    //                 {
-    //                     new_link.enabled = random_range(0.0..=1.0) <= 0.25;
-    //                 }
-
-    //                 if !Config::randomly_choose_matching_genes
-    //                 {
-    //                     new_link.weight = (d.weight + r.weight) / 2.0
-    //                 }
-                    
-    //                 offspring.links.push(new_link);
-    //                 neurons_used.insert(new_link.from);
-    //                 neurons_used.insert(new_link.to);
-
-    //             },
-
-    //             (Some(d), None) => {
-    //                 offspring.links.push(d.clone());
-    //                 neurons_used.insert(d.from);
-    //                 neurons_used.insert(d.to);
-    //             },
-
-    //             (None, Some(r)) => {
-    //                 if dominant.fitness.unwrap_or_default().round() == recessive.fitness.unwrap_or_default().round()
-    //                 {
-    //                     offspring.links.push(r.clone());
-    //                     neurons_used.insert(r.from);
-    //                     neurons_used.insert(r.to);
-    //                 }
-    //             },
-
-    //             (None, None) => ()
+    //             let recessive_neuron = dominant.get_neuron(*neuron_id);
+    //             let mut offspring_neuron = dominant_neuron.clone();
+    //             offspring_neuron.activation = 0.0;
+    //             offspring_neuron.bias = *vec![dominant_neuron.bias, recessive_neuron.bias].choose(&mut rand::rng()).unwrap();
+    //             offspring.neurons.insert(*neuron_id, offspring_neuron);
+    //             //TODO choose random activation function
+    //         }
+    //         else
+    //         {
+    //             let mut offspring_neuron = dominant_neuron.clone();
+    //             offspring_neuron.activation = 0.0;
+    //             offspring.neurons.insert(*neuron_id, offspring_neuron);
     //         }
     //     }
 
-        
-    //     for i in neurons_used
+    //     for dominant_link in dominant.links.clone()
     //     {
-    //         let neuron = if dominant.neurons.contains_key(&i) {
-    //             dominant.get_neuron(i).clone()
-    //         } else {
-    //             recessive.get_neuron(i).clone()
-    //         };
-            
-    //         offspring.neurons.insert(i, neuron);
+    //         let recessive_link = recessive.links.iter().find(|link| link.from == dominant_link.from && link.to == dominant_link.to);
+    //         if recessive_link.is_some()
+    //         {
+    //             let mut offspring_link = dominant_link.clone();
+    //             offspring_link.weight = *vec![dominant_link.weight, recessive_link.unwrap().weight].choose(&mut rand::rng()).unwrap();
+    //             offspring_link.enabled = *vec![dominant_link.enabled, recessive_link.unwrap().enabled].choose(&mut rand::rng()).unwrap();
+    //             offspring.links.push(offspring_link);
+    //         }
+    //         else
+    //         {
+    //             offspring.links.push(dominant_link.clone());
+    //         }
     //     }
+
     //     return offspring;
     // }
+
+    pub fn crossover(&self, other : &Network, net_count :&mut usize) -> Network
+    {
+        if self.id == other.id
+        {
+            return self.clone();
+        }
+
+        let (dominant, recessive) : (&Network, &Network)= if self.fitness.unwrap_or_default() > other.fitness.unwrap_or_default()  {
+            (self, other)
+        } else {
+            (other, self)
+        };
+
+        let mut offspring : Network = Network::new(*net_count);
+        *net_count += 1;
+
+        let mut neurons_used : HashSet<usize> = HashSet::new();
+
+        //TODO maybe use hashsets instead and instersections like in get_genetic_distance
+        let all_innovation_numbers: Vec<usize> = dominant.links
+            .iter()
+            .chain(recessive.links.iter())
+            .map(|link| link.id)
+            .collect::<HashSet<usize>>()
+            .into_iter()
+            .collect::<Vec<usize>>();   
+
+        for id in all_innovation_numbers
+        {
+            match (dominant.get_link(id), recessive.get_link(id))
+            {
+                (Some(d), Some(r)) => {
+                    let mut new_link = if random_range(0..=1) == 0 {
+                        d.clone()
+                    } else {
+                        r.clone()
+                    };
+                    
+                    if d.enabled != r.enabled
+                    {
+                        new_link.enabled = random_range(0.0..=1.0) <= 0.25;
+                    }
+
+                    if !Config::randomly_choose_matching_genes
+                    {
+                        new_link.weight = (d.weight + r.weight) / 2.0
+                    }
+                    
+                    offspring.links.push(new_link);
+                    neurons_used.insert(new_link.from);
+                    neurons_used.insert(new_link.to);
+
+                },
+
+                (Some(d), None) => {
+                    offspring.links.push(d.clone());
+                    neurons_used.insert(d.from);
+                    neurons_used.insert(d.to);
+                },
+
+                (None, Some(r)) => {
+                    if dominant.fitness.unwrap_or_default().round() == recessive.fitness.unwrap_or_default().round()
+                    {
+                        offspring.links.push(r.clone());
+                        neurons_used.insert(r.from);
+                        neurons_used.insert(r.to);
+                    }
+                },
+
+                (None, None) => ()
+            }
+        }
+
+
+        //make sure input and output nodes always end up in the offspring even if they have no links to or from them
+        for i in 0..(Config::input_count + Config::output_count)
+        {
+            neurons_used.insert(i);
+        }
+
+        
+        for i in neurons_used
+        {
+            let neuron = if dominant.neurons.contains_key(&i) {
+                dominant.get_neuron(i).clone()
+            } else {
+                recessive.get_neuron(i).clone()
+            };
+            
+            offspring.neurons.insert(i, neuron);
+        }
+        return offspring;
+    }
 
     pub fn get_genetic_distance(&self, other : &Network) -> f32
     {
