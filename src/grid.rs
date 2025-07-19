@@ -300,6 +300,9 @@ impl Grid
         }
 
         inputs[28] = self.segments.len() as f32 / (Config::grid_height * Config::grid_width) as f32;
+        
+        //bias neuron
+        inputs[29] = 1.0;
 
         return inputs;
     }

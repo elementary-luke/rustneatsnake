@@ -368,62 +368,76 @@ impl Network
         println!("{}", Dot::new(&g));
     }
 
-    // pub fn crossover(&self, other : &Network, net_count : &mut usize) -> Network
-    // {
-    //     let mut offspring : Network = Network::new(*net_count);
-    //     let (dominant, recessive) : (&Network, &Network)= if self.fitness.unwrap_or_default() > other.fitness.unwrap_or_default()  {
-    //         (self, other)
-    //     } else {
-    //         (other, self)
-    //     };
 
-    //     for neuron_id in dominant.neurons.keys()
-    //     {
-    //         let dominant_neuron = dominant.get_neuron(*neuron_id);
-    //         if recessive.neurons.contains_key(neuron_id)
-    //         {
-    //             let recessive_neuron = dominant.get_neuron(*neuron_id);
-    //             let mut offspring_neuron = dominant_neuron.clone();
-    //             offspring_neuron.activation = 0.0;
-    //             offspring_neuron.bias = *vec![dominant_neuron.bias, recessive_neuron.bias].choose(&mut rand::rng()).unwrap();
-    //             offspring.neurons.insert(*neuron_id, offspring_neuron);
-    //             //TODO choose random activation function
-    //         }
-    //         else
-    //         {
-    //             let mut offspring_neuron = dominant_neuron.clone();
-    //             offspring_neuron.activation = 0.0;
-    //             offspring.neurons.insert(*neuron_id, offspring_neuron);
-    //         }
-    //     }
 
-    //     for dominant_link in dominant.links.clone()
-    //     {
-    //         let recessive_link = recessive.links.iter().find(|link| link.from == dominant_link.from && link.to == dominant_link.to);
-    //         if recessive_link.is_some()
-    //         {
-    //             let mut offspring_link = dominant_link.clone();
-    //             offspring_link.weight = *vec![dominant_link.weight, recessive_link.unwrap().weight].choose(&mut rand::rng()).unwrap();
-    //             offspring_link.enabled = *vec![dominant_link.enabled, recessive_link.unwrap().enabled].choose(&mut rand::rng()).unwrap();
-    //             offspring.links.push(offspring_link);
-    //         }
-    //         else
-    //         {
-    //             offspring.links.push(dominant_link.clone());
-    //         }
-    //     }
+    pub fn simple_crossover(&self, other : &Network, net_count : &mut usize) -> Network
+    {
+        let mut offspring : Network = Network::new(*net_count);
+        let (dominant, recessive) : (&Network, &Network)= if self.fitness.unwrap_or_default() > other.fitness.unwrap_or_default()  {
+            (self, other)
+        } else {
+            (other, self)
+        };
 
-    //     return offspring;
-    // }
+        for neuron_id in dominant.neurons.keys()
+        {
+            let dominant_neuron = dominant.get_neuron(*neuron_id);
+            if recessive.neurons.contains_key(neuron_id)
+            {
+                let recessive_neuron = dominant.get_neuron(*neuron_id);
+                let mut offspring_neuron = dominant_neuron.clone();
+                offspring_neuron.activation = 0.0;
+                offspring_neuron.bias = *vec![dominant_neuron.bias, recessive_neuron.bias].choose(&mut rand::rng()).unwrap();
+                offspring.neurons.insert(*neuron_id, offspring_neuron);
+                //TODO choose random activation function
+            }
+            else
+            {
+                let mut offspring_neuron = dominant_neuron.clone();
+                offspring_neuron.activation = 0.0;
+                offspring.neurons.insert(*neuron_id, offspring_neuron);
+            }
+        }
+
+        for dominant_link in dominant.links.clone()
+        {
+            let recessive_link = recessive.links.iter().find(|link| link.from == dominant_link.from && link.to == dominant_link.to);
+            if recessive_link.is_some()
+            {
+                let mut offspring_link = dominant_link.clone();
+                offspring_link.weight = *vec![dominant_link.weight, recessive_link.unwrap().weight].choose(&mut rand::rng()).unwrap();
+                offspring_link.enabled = *vec![dominant_link.enabled, recessive_link.unwrap().enabled].choose(&mut rand::rng()).unwrap();
+                offspring.links.push(offspring_link);
+            }
+            else
+            {
+                offspring.links.push(dominant_link.clone());
+            }
+        }
+
+        return offspring;
+    }
 
     pub fn crossover(&self, other : &Network, net_count :&mut usize) -> Network
+    {
+        if Config::advanced_crossover
+        {
+            return self.advanced_crossover(other, net_count);
+        }
+        else
+        {
+            return self.simple_crossover(other, net_count);
+        }
+    }
+
+    pub fn advanced_crossover(&self, other : &Network, net_count :&mut usize) -> Network
     {
         if self.id == other.id
         {
             return self.clone();
         }
 
-        let (dominant, recessive) : (&Network, &Network)= if self.fitness.unwrap_or_default() > other.fitness.unwrap_or_default()  {
+        let (dominant, recessive) : (&Network, &Network) = if self.fitness.unwrap_or_default() > other.fitness.unwrap_or_default()  {
             (self, other)
         } else {
             (other, self)

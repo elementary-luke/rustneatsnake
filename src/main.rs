@@ -30,7 +30,7 @@ fn main()
     manager.simulate_population();
     manager.sort_population_by_fitness();
 
-    for i in 0..500
+    for i in 0..1000
     {
         if i % 10 == 0
         {

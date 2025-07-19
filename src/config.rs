@@ -16,7 +16,7 @@ impl Config
     pub const min_link_weight : f32 = -1.0;
     pub const max_link_weight : f32 = 1.0;
     pub const link_mutate_power : f32 = 1.2;
-    pub const input_count : usize = 29;
+    pub const input_count : usize = 30;
     pub const output_count : usize = 4;
 
     //population
@@ -26,6 +26,8 @@ impl Config
     pub const force_reevalutaion : bool = true; // if true all networks will be evaluated, even if they were evaluated in a previous generation
     pub const global_change_map : bool = true; // if true, the same mutation in another generation will have the same innovation_number
 
+
+    pub const advanced_crossover : bool = true; //if advanced, it follows the NEAT sepcification, if not we just add everything from dominant and if theres a match then pick one
     pub const randomly_choose_matching_genes : bool = true; // if true randomly choose gene when genes match, otherwise average
 
     pub const cE : f32 = 1.0;
@@ -33,14 +35,15 @@ impl Config
     pub const cW : f32 = 0.4;
     pub const delta_t : f32 = 3.0;
 
-    //  up_fruit_index = 0;
-    //  down_fruit_index = 1;
-    //  left_fruit_index = 2;
-    //  right_fruit_index = 3;
-    //  up_wall_index = 4;
-    //  down_wall_index = 5;
-    //  left_wall_index = 6;
-    //  right_wall_index = 7;
+
+    //INPUTS
+    //0-7     : fruit
+    //8-15    : walls
+    //16-23   : body
+    //24-27   : direction
+    //28      : length
+    //29      : bias
+
 
     //game
     pub const grid_width : usize = 20;
