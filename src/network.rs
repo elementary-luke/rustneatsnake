@@ -1,7 +1,9 @@
 use crate::link::*;
 use crate::neuron;
 use crate::neuron::*;
+use std::cmp::max;
 use std::collections::HashMap;
+use std::net;
 use std::thread::current;
 use crate::config::Config;
 use rand::random_range;
@@ -18,6 +20,7 @@ use petgraph::dot::Dot;
 #[derive(Debug, Clone)]
 pub struct Network 
 {
+    pub id : usize,
     pub neurons : HashMap<usize, Neuron>,
     pub links : Vec<Link>,
     pub fitness : Option<f32>
@@ -97,7 +100,7 @@ impl Network
         }
     }
 
-    pub fn add_link(&mut self)
+    pub fn add_link(&mut self, innovation_count : &mut usize, change_map : &mut HashMap<(Mutation, usize, usize), usize>)
     {
         //pick an input and output
         let possible_inputs : Vec<usize> = self.neurons.iter()
@@ -136,7 +139,19 @@ impl Network
             return;
         }
 
-        let mut link = Link {from : input_id, to : output_id, ..Default::default()};
+        let new_link_id : usize;
+        if change_map.contains_key(&(Mutation::add_link, input_id, output_id))
+        {
+            new_link_id = *change_map.get(&(Mutation::add_link, input_id, output_id)).unwrap();
+        }
+        else
+        {
+            new_link_id = *innovation_count;
+            change_map.insert((Mutation::add_link, input_id, output_id), *innovation_count);
+            *innovation_count += 1;
+        }
+
+        let mut link = Link {from : input_id, to : output_id, id : new_link_id, ..Default::default()};
         link.set_random_weight();
         self.links.push(link);
     }
@@ -194,7 +209,7 @@ impl Network
         {
             new_neuron_id = *innovation_count;
             change_map.insert((Mutation::add_neuron, old_link.from, old_link.to), *innovation_count);
-            *innovation_count += 1;
+            *innovation_count += 3;
         }
         
         self.neurons.insert(new_neuron_id, Neuron {id : new_neuron_id, activation : 0.5, kind : NeuronType::Hidden, ..Default::default()});
@@ -203,8 +218,8 @@ impl Network
         let from_id : usize = old_link.from;
         let to_id : usize = old_link.to;
         let old_weight : f32 = old_link.weight;
-        self.links.push(Link {from :from_id, to : new_neuron_id, weight : 1.0, ..Default::default()});
-        self.links.push(Link {from :new_neuron_id, to : to_id, weight : old_weight, ..Default::default()});
+        self.links.push(Link {from :from_id, to : new_neuron_id, weight : 1.0, id : new_neuron_id + 1, ..Default::default()});
+        self.links.push(Link {from :new_neuron_id, to : to_id, weight : old_weight, id : new_neuron_id + 2, ..Default::default()});
     }
 
     pub fn remove_hidden_neuron(&mut self)
@@ -270,12 +285,13 @@ impl Network
             {
                 match muta 
                 {
-                    Mutation::add_link => self.add_link(),
+                    Mutation::add_link => self.add_link(innovation_count, change_map),
                     Mutation::remove_link => self.remove_link(),
                     Mutation::add_neuron => self.add_hidden_neuron(innovation_count, change_map),
                     Mutation::remove_neuron => self.remove_hidden_neuron(),
                     Mutation::reset_link => self.reset_link_weight(),
                     Mutation::nudge_link  => self.nudge_link(),
+                    Mutation::toggle_link => self.toggle_link(),
                     Mutation::none  => (),
                 }
                 return;
@@ -284,19 +300,36 @@ impl Network
 
     }
 
-    //TODO toggle link 
+    pub fn toggle_link(&mut self)
+    {
+        if self.links.len() == 0
+        {
+            return;
+        }
+        let link = self.links.choose_mut(&mut rand::rng()).unwrap();
+        link.enabled = !link.enabled
+    }
 
 
     pub fn set_up_intial_links(&mut self)
     {
+        let mut innovation_count = self.neurons.len();
         for i in self.neurons.iter().filter(|(id, neuron)| neuron.kind == NeuronType::Input).map(|(id, neuron)| id)
         {
             for j in self.neurons.iter().filter(|(id, neuron)| neuron.kind == NeuronType::Output).map(|(id, neuron)| id)
             {
-                let mut link = Link {from : *i, to : *j, ..Default::default()};
-                link.set_random_weight();
+                let link = Link {from : *i, to : *j, id : innovation_count, ..Default::default()};
+                innovation_count += 1;
                 self.links.push(link);
             }
+        }
+    }
+
+    pub fn randomise_all_link_weights(&mut self)
+    {
+        for i in 0..self.links.len()
+        {
+            self.links[i].set_random_weight();
         }
     }
 
@@ -330,11 +363,11 @@ impl Network
         println!("{}", Dot::new(&g));
     }
 
-    pub fn crossover(&self, other : &Network) -> Network
+    pub fn crossover(&self, other : &Network, net_count : &mut usize) -> Network
     {
         let dominant : &Network;
         let recessive : &Network;
-        let mut offspring : Network = Network {..Default::default()};
+        let mut offspring : Network = Network::new(*net_count);
         if self.fitness > other.fitness
         {
             dominant = self;
@@ -385,6 +418,154 @@ impl Network
         return offspring;
     }
 
+    // pub fn crossover(&self, other : &Network, net_count :&mut usize) -> Network
+    // {
+    //     if self.id == other.id
+    //     {
+    //         return self.clone();
+    //     }
+
+    //     let (dominant, recessive) : (&Network, &Network)= if self.fitness.unwrap_or_default() > other.fitness.unwrap_or_default()  {
+    //         (self, other)
+    //     } else {
+    //         (other, self)
+    //     };
+
+    //     let mut offspring : Network = Network::new(*net_count);
+    //     *net_count += 1;
+
+    //     let mut neurons_used : HashSet<usize> = HashSet::new();
+
+    //     //TODO maybe use hashsets instead and instersections like in get_genetic_distance
+    //     let all_innovation_numbers: Vec<usize> = dominant.links
+    //         .iter()
+    //         .chain(recessive.links.iter())
+    //         .map(|link| link.id)
+    //         .collect::<HashSet<usize>>()
+    //         .into_iter()
+    //         .collect::<Vec<usize>>();   
+
+    //     for id in all_innovation_numbers
+    //     {
+    //         match (dominant.get_link(id), recessive.get_link(id))
+    //         {
+    //             (Some(d), Some(r)) => {
+    //                 let mut new_link = if random_range(0..=1) == 0 {
+    //                     d.clone()
+    //                 } else {
+    //                     r.clone()
+    //                 };
+                    
+    //                 if d.enabled != r.enabled
+    //                 {
+    //                     new_link.enabled = random_range(0.0..=1.0) <= 0.25;
+    //                 }
+
+    //                 if !Config::randomly_choose_matching_genes
+    //                 {
+    //                     new_link.weight = (d.weight + r.weight) / 2.0
+    //                 }
+                    
+    //                 offspring.links.push(new_link);
+    //                 neurons_used.insert(new_link.from);
+    //                 neurons_used.insert(new_link.to);
+
+    //             },
+
+    //             (Some(d), None) => {
+    //                 offspring.links.push(d.clone());
+    //                 neurons_used.insert(d.from);
+    //                 neurons_used.insert(d.to);
+    //             },
+
+    //             (None, Some(r)) => {
+    //                 if dominant.fitness.unwrap_or_default().round() == recessive.fitness.unwrap_or_default().round()
+    //                 {
+    //                     offspring.links.push(r.clone());
+    //                     neurons_used.insert(r.from);
+    //                     neurons_used.insert(r.to);
+    //                 }
+    //             },
+
+    //             (None, None) => ()
+    //         }
+    //     }
+
+        
+    //     for i in neurons_used
+    //     {
+    //         let neuron = if dominant.neurons.contains_key(&i) {
+    //             dominant.get_neuron(i).clone()
+    //         } else {
+    //             recessive.get_neuron(i).clone()
+    //         };
+            
+    //         offspring.neurons.insert(i, neuron);
+    //     }
+    //     return offspring;
+    // }
+
+    pub fn get_genetic_distance(&self, other : &Network) -> f32
+    {
+        let self_genes : HashSet<usize> = self.links
+            .iter()
+            .map(|link| link.id)
+            .collect::<HashSet<usize>>();
+
+        let other_genes : HashSet<usize> = other.links
+            .iter()
+            .map(|link| link.id)
+            .collect::<HashSet<usize>>();
+        
+        let shared_genes : HashSet<usize>= self_genes.intersection(&other_genes).copied().collect();
+
+        let max_self  = self_genes.iter().max().copied().unwrap_or(0);
+        let max_other = other_genes.iter().max().copied().unwrap_or(0);
+        let cutoff    = max_self.min(max_other);
+
+        let all_genes : HashSet<usize>= self_genes.union(&other_genes).copied().collect();
+
+        let mut E : f32 = 0.0;
+        let mut D : f32 = 0.0;
+        let mut total_weight_diff : f32 = 0.0;
+        
+        for id in all_genes
+        {
+            if shared_genes.contains(&id)
+            {
+                total_weight_diff += (self.get_link(id).unwrap().weight - other.get_link(id).unwrap().weight).abs();
+            }
+            else
+            {
+                if id <= cutoff
+                {
+                    D += 1.0;
+                }
+                else
+                {
+                    E += 1.0;
+                }
+            }
+        }
+
+        let N : f32= max(max(self_genes.len(), other_genes.len()), 1) as f32;
+
+        let avg_weight_diff = if shared_genes.is_empty() {
+            0.0
+        } else {
+            total_weight_diff / shared_genes.len() as f32
+        };
+
+        let delta = Config::cE * E / N + Config::cD * D / N + Config::cW * avg_weight_diff;
+
+        return delta;
+    }
+
+    pub fn get_link(&self, id : usize) -> Option<&Link>
+    {
+        return self.links.iter().find(|x| x.id == id);
+    }
+
     pub fn set_inputs(&mut self, inputs : Vec<f32>)
     {
         for i in 0..Config::input_count
@@ -403,13 +584,10 @@ impl Network
 
         return outputs;
     }
-}
 
-impl Default for Network 
-{
-    fn default() -> Network 
+    pub fn new(id : usize) -> Network
     {
-        Network {neurons : HashMap::new(), links : vec![], fitness : None}
+        return Network {neurons : HashMap::new(), links : vec![], fitness : None, id : id}
     }
 }
 
@@ -427,5 +605,6 @@ pub enum Mutation
     remove_link,
     reset_link,
     nudge_link,
+    toggle_link,
     none,
 }

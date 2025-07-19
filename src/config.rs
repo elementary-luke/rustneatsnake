@@ -1,7 +1,6 @@
 //to use raylib, installed cmake 3.31 and most recent llvm. MAKE SURE PATH VARS ADDED IN INSTALLATION
 
 use crate::network::*;
-use strum_macros::EnumIter;
 
 pub struct Config
 {
@@ -23,6 +22,16 @@ impl Config
     //population
     pub const survival_percentage : f32 = 0.4;
     pub const population_size : usize = 100;
+    pub const cull_method : i16 = 1; //0:top x% survive, 1: higher fitness means better chance to survive, 2: tournament
+    pub const force_reevalutaion : bool = false; // if true all networks will be evaluated, even if they were evaluated in a previous generation
+    pub const global_change_map : bool = true; // if true, the same mutation in another generation will have the same innovation_number
+
+    pub const randomly_choose_matching_genes : bool = true; // if true randomly choose gene when genes match, otherwise average
+
+    pub const cE : f32 = 1.0;
+    pub const cD : f32 = 1.0;
+    pub const cW : f32 = 0.4;
+    pub const delta_t : f32 = 3.0;
 
     //  up_fruit_index = 0;
     //  down_fruit_index = 1;
@@ -43,32 +52,17 @@ impl Config
     pub const step_value : f32 = 1.0;
 
     //agent
-    pub const num_simulations : usize= 5;
+    pub const num_simulations : usize = 5;
 
     //relative probabilites, don't necessarily have to add up to 1
-    pub const mutation_probabilities : [(Mutation, f32); 7] = [
+    pub const mutation_probabilities : [(Mutation, f32); 8] = [
         (Mutation::add_link, 0.15),
         (Mutation::remove_link, 0.1),
         (Mutation::add_neuron, 0.1),
         (Mutation::remove_neuron, 0.05),
         (Mutation::reset_link, 0.1),
         (Mutation::nudge_link, 0.4),
+        (Mutation::toggle_link, 0.00),
         (Mutation::none, 0.1),
     ];
-}
-
-#[derive(Debug, EnumIter)]
-
-pub enum InputType
-{
-    A,
-    B,
-    C
-}
-#[derive(Debug, EnumIter)]
-pub enum OutputType
-{
-    C,
-    D,
-    E
 }

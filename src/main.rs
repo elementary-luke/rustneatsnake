@@ -30,7 +30,7 @@ fn main()
     manager.simulate_population();
     manager.sort_population_by_fitness();
 
-    for i in 0..500
+    for i in 0..200
     {
         if i % 10 == 0
         {
@@ -45,6 +45,13 @@ fn main()
     manager.networks[0].draw();
     println!("{:?}", manager.networks[0].fitness);
     println!("{:?}", manager.networks.last().unwrap().fitness);
+
+    println!("aab{:?}", Agent::new(manager.networks[0].clone()).evaluate());
+    println!("aab{:?}", Agent::new(manager.networks[0].clone()).evaluate());
+    println!("aab{:?}", Agent::new(manager.networks[0].clone()).evaluate());
+    println!("aab{:?}", Agent::new(manager.networks[0].clone()).evaluate());
+    println!("aab{:?}", Agent::new(manager.networks[0].clone()).evaluate());
+    
     
     let mut runner = Runner::new(manager.networks[0].clone());
 
@@ -75,7 +82,7 @@ fn main()
         // if p
         {
             runner.step();
-            println!("{:?}", runner.grid.get_inputs());
+            // println!("{:?}", runner.grid.get_inputs());
         }
         
     }
