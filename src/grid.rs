@@ -1,9 +1,10 @@
-use std::{cmp::{max, min}, thread::spawn};
+use std::cmp::min;
 
 use rand::random_range;
 use raylib::prelude::*;
 
-use crate::{config::{self, Config}, vec2::Vec2i};
+use crate::config::Config;
+use crate::vec2::Vec2i;
 
 pub struct Grid 
 {
@@ -12,9 +13,9 @@ pub struct Grid
     dir : Vec2i,
     fruit_pos : Vec2i,
     pub running : bool,
-    fruits_eaten : i16,
-    steps_taken : i16,
-    steps_without_fruit : i16,
+    fruits_eaten : u16,
+    steps_taken : u16,
+    steps_without_fruit : u16,
 }
 
 impl Grid 
@@ -84,7 +85,7 @@ impl Grid
             return
         }
 
-        if self.steps_without_fruit >= (Config::grid_height * Config::grid_width) as i16
+        if self.steps_without_fruit >= (Config::grid_height * Config::grid_width) as u16
         {
             self.running = false;
             return;

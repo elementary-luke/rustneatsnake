@@ -1,11 +1,13 @@
 use crate::link::*;
 use crate::neuron::*;
 use std::cmp::max;
+use std::cmp::min;
 use std::collections::HashMap;
 use crate::config::Config;
 use rand::random_range;
 use rand::prelude::IndexedRandom;
 use rand::prelude::IndexedMutRandom;
+use raylib::ffi::rlEnableScissorTest;
 use std::collections::HashSet;
 use petgraph::prelude::Graph;
 use petgraph::prelude::NodeIndex;
@@ -311,7 +313,7 @@ impl Network
     }
 
 
-    pub fn set_up_intial_links(&mut self)
+    pub fn link_up(&mut self)
     {
         let mut innovation_count = self.neurons.len();
         for i in self.neurons.iter().filter(|(id, neuron)| neuron.kind == NeuronType::Input).map(|(id, neuron)| id)
@@ -325,11 +327,20 @@ impl Network
         }
     }
 
+    pub fn randomly_remove_links(&mut self, n : usize)
+    {
+        for _ in 0..n
+        {
+            self.links.remove(random_range(0..self.links.len()));
+        }
+    }
+
     pub fn randomise_all_link_weights(&mut self)
     {
         for i in 0..self.links.len()
         {
             self.links[i].set_random_weight();
+            // self.links[i].weight = random_range((-1.0)..1.0);
         }
     }
 
@@ -368,6 +379,7 @@ impl Network
     pub fn simple_crossover(&self, other : &Network, net_count : &mut usize) -> Network
     {
         let mut offspring : Network = Network::new(*net_count);
+        *net_count += 1;
         let (dominant, recessive) : (&Network, &Network)= if self.fitness.unwrap_or_default() > other.fitness.unwrap_or_default()  {
             (self, other)
         } else {
@@ -429,7 +441,10 @@ impl Network
     {
         if self.id == other.id
         {
-            return self.clone();
+            let mut net = self.clone();
+            net.id = *net_count;
+            *net_count += 1;
+            return net;
         }
 
         let (dominant, recessive) : (&Network, &Network) = if self.fitness.unwrap_or_default() > other.fitness.unwrap_or_default()  {
@@ -562,7 +577,14 @@ impl Network
             }
         }
 
-        let N : f32= max(max(self_genes.len(), other_genes.len()), 1) as f32;
+        let N : f32 = if min(self_genes.len(), other_genes.len()) < 20
+        {
+            1 as f32
+        }
+        else
+        {
+            max(self_genes.len(), other_genes.len()) as f32
+        };
 
         let avg_weight_diff = if shared_genes.is_empty() {
             0.0

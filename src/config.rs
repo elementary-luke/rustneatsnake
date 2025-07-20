@@ -13,18 +13,29 @@ impl Config
     pub const autorun : bool = true; // if false, you will have to press space to see the snake move 1 frame
     pub const fps : u32 = 60; //15 is good
 
+    //species
+    pub const use_species : bool = true;
+    pub const best_as_representative : bool = true; //if false representative is randomly picked for the next generation
+    pub const target_num_species : usize = 20;
+    pub const stagnation_threshold : usize = 15; // if a species is stagnant for over 15 generations remove it
+    pub const stagnation_factor : f32 = 1.05; // how much better the fitness has to be compared to the current species best to reset stagnation counter
+    pub const elitistm_num : usize = 1; //how many of the best per generation to keep unchanged
+    pub const mutate_elites : bool = false; // whether elites should be mutated or should just go into the next generation untouched
+    pub const mut_not_cross_prob : f32 = 0.25; // probability that an offspring is a mutated clone not a crossover
+
     //network
+    pub const num_start_links : usize = 1;
     pub const link_mean : f32 = 0.0;
-    pub const link_sigma : f32 = 1.0;
+    pub const link_sigma : f32 = 0.35;
     pub const min_link_weight : f32 = -1.0;
     pub const max_link_weight : f32 = 1.0;
-    pub const link_mutate_power : f32 = 1.2;
+    pub const link_mutate_power : f32 = 0.35;
     pub const input_count : usize = 30;
     pub const output_count : usize = 4;
 
     //population
     pub const survival_percentage : f32 = 0.4;
-    pub const population_size : usize = 100;
+    pub const population_size : usize = 200;
     pub const cull_method : i16 = 1; //0:top x% survive, 1: higher fitness means better chance to survive, 2: tournament
     pub const force_reevalutaion : bool = true; // if true all networks will be evaluated, even if they were evaluated in a previous generation
     pub const global_change_map : bool = true; // if true, the same mutation in another generation will have the same innovation_number
@@ -36,7 +47,8 @@ impl Config
     pub const cE : f32 = 1.0;
     pub const cD : f32 = 1.0;
     pub const cW : f32 = 0.4;
-    pub const delta_t : f32 = 3.0;
+    pub const base_delta_t : f32 = 3.0; // max genetic distance for 2 networks to be in the same specie at the start
+    pub const delta_t_adjustment : f32 = 0.001; // set to 0.0 to disable
 
 
     //INPUTS
@@ -49,26 +61,37 @@ impl Config
 
 
     //game
-    pub const grid_width : usize = 20;
-    pub const grid_height : usize = 20;
+    pub const grid_width : usize = 15;
+    pub const grid_height : usize = 15;
 
     pub const cell_width : i16 = 30; // size of cell displayed
 
     pub const fruit_value : f32 = 1000.0;
     pub const step_value : f32 = 1.0;
 
-    //agent
-    pub const num_simulations : usize = 5;
+    //fitness evaluation
+    pub const use_multithreading : bool = true;
+    pub const num_simulations : usize = 20;
 
     //relative probabilites, don't necessarily have to add up to 1
-    pub const mutation_probabilities : [(Mutation, f32); 8] = [
-        (Mutation::add_link, 0.15),
-        (Mutation::remove_link, 0.1),
-        (Mutation::add_neuron, 0.1),
-        (Mutation::remove_neuron, 0.05),
-        (Mutation::reset_link, 0.1),
-        (Mutation::nudge_link, 0.37),
-        (Mutation::toggle_link, 0.03),
-        (Mutation::none, 0.1),
+    // pub const mutation_probabilities : [(Mutation, f32); 8] = [
+    //     (Mutation::add_link, 0.15),
+    //     (Mutation::remove_link, 0.1),
+    //     (Mutation::add_neuron, 0.05),
+    //     (Mutation::remove_neuron, 0.05),
+    //     (Mutation::reset_link, 0.1),
+    //     (Mutation::nudge_link, 0.7),
+    //     (Mutation::toggle_link, 0.03),
+    //     (Mutation::none, 0.1),
+    // ];
+    pub const mutation_probabilities: [(Mutation, f32); 8] = [
+        (Mutation::add_link,     0.08),
+        (Mutation::remove_link,  0.02),
+        (Mutation::add_neuron,   0.02),
+        (Mutation::remove_neuron,0.005),
+        (Mutation::reset_link,   0.03),
+        (Mutation::nudge_link,   0.80),
+        (Mutation::toggle_link,  0.02),
+        (Mutation::none,         0.025),
     ];
 }

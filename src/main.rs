@@ -20,6 +20,7 @@ mod vec2;
 mod grid;
 mod agent;
 mod runner;
+mod specie;
 
 fn main() 
 {
@@ -27,9 +28,8 @@ fn main()
     let mut manager = PopManager::new();
     manager.initialise_base_population();
 
-    for i in 0..1
+    for i in 0..1000
     {
-        
         if i % 10 == 0
         {
             manager.print_generation_statistics();
