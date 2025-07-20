@@ -9,8 +9,11 @@ pub struct Config
 
 impl Config
 {
+    //run settings
+    pub const autorun : bool = true; // if false, you will have to press space to see the snake move 1 frame
+    pub const fps : u32 = 60; //15 is good
+
     //network
-    pub const link_has_id :bool = false;
     pub const link_mean : f32 = 0.0;
     pub const link_sigma : f32 = 1.0;
     pub const min_link_weight : f32 = -1.0;

@@ -1,18 +1,12 @@
 use crate::link::*;
-use crate::neuron;
 use crate::neuron::*;
 use std::cmp::max;
 use std::collections::HashMap;
-use std::net;
-use std::thread::current;
 use crate::config::Config;
 use rand::random_range;
-use rand::Rng;
-use rand::seq::SliceRandom;
 use rand::prelude::IndexedRandom;
 use rand::prelude::IndexedMutRandom;
 use std::collections::HashSet;
-use rand_distr::{Distribution, Normal};
 use petgraph::prelude::Graph;
 use petgraph::prelude::NodeIndex;
 use petgraph::dot::Dot;
@@ -23,7 +17,7 @@ pub struct Network
     pub id : usize,
     pub neurons : HashMap<usize, Neuron>,
     pub links : Vec<Link>,
-    pub fitness : Option<f32>
+    pub fitness : Option<f32>,
 }
 
 impl Network 
@@ -184,6 +178,8 @@ impl Network
         }
         self.links.remove(random_range(0..self.links.len()));
     }
+
+    
     
     pub fn add_hidden_neuron(&mut self, innovation_count : &mut usize, change_map : &mut HashMap<(Mutation, usize, usize), usize>)
     {
@@ -192,7 +188,6 @@ impl Network
         {
             return;
         }
-
 
         //disable old link
         let old_link =  possible_links.choose_mut(&mut rand::rng()).unwrap();

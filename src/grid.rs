@@ -59,8 +59,6 @@ impl Grid
     //make sure direction can only change according to the rules of snake i.e. cant go from moving right to left
     fn change_direction(&mut self, desire : Vec2i)
     {
-        
-
         let moving_vertically = self.dir.x == 0;
 
         //make sure direction can only change according to the rules of snake i.e. cant go from moving right to left

@@ -14,13 +14,24 @@ pub struct PopManager
     pub change_map : HashMap<(Mutation, usize, usize), usize>,
     pub net_count : usize,
     pub networks : Vec<Network>,
+    pub generation : usize,
 }
 
 impl PopManager 
 {
     pub fn new() -> PopManager
     {
-        return PopManager {innovation_count : Config::input_count + Config::output_count, change_map : HashMap::new(), net_count : 0, networks : vec![]};
+        return PopManager {innovation_count : Config::input_count + Config::output_count, change_map : HashMap::new(), net_count : 0, networks : vec![], generation : 0};
+    }
+
+    pub fn print_generation_statistics(&self)
+    {
+        println!("gen:{}", self.generation);
+        println!("best fitness:{}", self.networks[0].fitness.unwrap_or_default());
+        println!("avg fitness:{}", self.get_avg_fitness());
+        println!("avg neuron count: {}", self.get_avg_num_neurons());
+        println!("avg link count: {}", self.get_avg_num_links());
+        println!("---------------------");
     }
 
     pub fn add(&mut self)
@@ -45,6 +56,22 @@ impl PopManager
             self.net_count += 1;
             self.networks.push(net);
         }
+    }
+
+    pub fn initialise_base_population(&mut self)
+    {
+        self.add();
+        self.simulate_population();
+        self.sort_population_by_fitness();
+    }
+
+    pub fn next_generation(&mut self)
+    {
+        self.cull_weak();
+        self.add_offspring();
+        self.simulate_population();
+        self.sort_population_by_fitness();
+        self.generation += 1;
     }
 
     pub fn cull_weak(&mut self)
@@ -179,7 +206,18 @@ impl PopManager
         self.networks.sort_by(|a, b| b.fitness.partial_cmp(&a.fitness).unwrap());
     }
 
-    pub fn get_avg_num_neurons(&self) -> f32{
+    pub fn get_avg_num_neurons(&self) -> f32
+    {
         return self.networks.iter().map(|net| net.neurons.len()).sum::<usize>() as f32 / self.networks.len() as f32;
+    }
+
+    pub fn get_avg_num_links(&self) -> f32
+    {
+        return self.networks.iter().map(|net| net.links.len()).sum::<usize>() as f32 / self.networks.len() as f32;
+    }
+
+    pub fn get_avg_fitness(&self) -> f32
+    {
+        return self.networks.iter().map(|net| net.fitness.unwrap_or_default()).sum::<f32>() / self.networks.len() as f32;
     }
 }
