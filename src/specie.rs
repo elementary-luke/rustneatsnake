@@ -5,6 +5,7 @@ pub struct Specie
     pub age : u16,
     pub stagnant_counter : usize,
     pub best_fitness : f32,
+    pub highest_best_fitness : f32,
     pub avg_fitness : f32,
     pub representative : Network, // clone not an index since might not exist next gen
     pub members : Vec<usize>, //indices of popmanagers netwoks vector
@@ -15,7 +16,7 @@ impl Specie
     pub fn new(rep : Network, id : usize) -> Specie
     {
         let fitness : f32 = rep.fitness.unwrap_or_default();
-        return Specie {representative: rep, members: vec![], age: 0, stagnant_counter: 0, best_fitness : fitness, avg_fitness : fitness, id};
+        return Specie {representative: rep, members: vec![], age: 0, stagnant_counter: 0, best_fitness : fitness, avg_fitness : fitness, id, highest_best_fitness : fitness};
     }
 
     pub fn clear_members(&mut self)
@@ -42,9 +43,10 @@ impl Specie
             }
         }
 
-        if best > self.best_fitness * Config::stagnation_factor
+        if best > self.highest_best_fitness * Config::stagnation_factor
         {
             self.stagnant_counter = 0;
+            self.highest_best_fitness = best;
         }
 
         self.best_fitness = best;

@@ -105,11 +105,11 @@ impl PopManager
     {
         if self.species.len() > Config::target_num_species
         {
-            self.delta_t -= Config::delta_t_adjustment;
+            self.delta_t += Config::delta_t_adjustment;
         } 
         else if self.species.len() < Config::target_num_species
         {
-            self.delta_t += Config::delta_t_adjustment;
+            self.delta_t -= Config::delta_t_adjustment;
         }
     }
 
@@ -256,7 +256,10 @@ impl PopManager
 
         for i in 0..self.networks.len()
         {
-            self.species.shuffle(&mut rand::rng());
+            if Config::shuffle_species_order
+            {
+                self.species.shuffle(&mut rand::rng());
+            }
             let mut species_found : bool = false;
             for specie in &mut self.species
             {

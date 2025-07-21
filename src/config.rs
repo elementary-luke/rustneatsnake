@@ -15,10 +15,11 @@ impl Config
 
     //species
     pub const use_species : bool = true;
+    pub const shuffle_species_order : bool = false; // whether the order of the species are shuffled every generation to stop species higher up from alsways getting networks that couldve also been in other species
     pub const best_as_representative : bool = true; //if false representative is randomly picked for the next generation
-    pub const target_num_species : usize = 20;
-    pub const stagnation_threshold : usize = 15; // if a species is stagnant for over 15 generations remove it
-    pub const stagnation_factor : f32 = 1.05; // how much better the fitness has to be compared to the current species best to reset stagnation counter
+    pub const target_num_species : usize = 14;
+    pub const stagnation_threshold : usize = 50; // if a species is stagnant for over x generations remove it
+    pub const stagnation_factor : f32 = 1.00; // how much better the fitness has to be compared to the current species best to reset stagnation counter
     pub const elitistm_num : usize = 1; //how many of the best per generation to keep unchanged
     pub const mutate_elites : bool = false; // whether elites should be mutated or should just go into the next generation untouched
     pub const mut_not_cross_prob : f32 = 0.25; // probability that an offspring is a mutated clone not a crossover
@@ -26,10 +27,10 @@ impl Config
     //network
     pub const num_start_links : usize = 1;
     pub const link_mean : f32 = 0.0;
-    pub const link_sigma : f32 = 0.35;
-    pub const min_link_weight : f32 = -1.0;
-    pub const max_link_weight : f32 = 1.0;
-    pub const link_mutate_power : f32 = 0.35;
+    pub const link_sigma : f32 = 0.5;
+    pub const min_link_weight : f32 = -5.0;
+    pub const max_link_weight : f32 = 5.0;
+    pub const link_mutate_power : f32 = 0.5;
     pub const input_count : usize = 30;
     pub const output_count : usize = 4;
 
@@ -48,7 +49,7 @@ impl Config
     pub const cD : f32 = 1.0;
     pub const cW : f32 = 0.4;
     pub const base_delta_t : f32 = 3.0; // max genetic distance for 2 networks to be in the same specie at the start
-    pub const delta_t_adjustment : f32 = 0.001; // set to 0.0 to disable
+    pub const delta_t_adjustment : f32 = 0.0; // set to 0.0 to disable
 
 
     //INPUTS
@@ -84,14 +85,24 @@ impl Config
     //     (Mutation::toggle_link, 0.03),
     //     (Mutation::none, 0.1),
     // ];
-    pub const mutation_probabilities: [(Mutation, f32); 8] = [
-        (Mutation::add_link,     0.08),
-        (Mutation::remove_link,  0.02),
-        (Mutation::add_neuron,   0.02),
-        (Mutation::remove_neuron,0.005),
-        (Mutation::reset_link,   0.03),
-        (Mutation::nudge_link,   0.80),
-        (Mutation::toggle_link,  0.02),
-        (Mutation::none,         0.025),
+    // pub const mutation_probabilities: [(Mutation, f32); 8] = [
+    //     (Mutation::add_link,     0.08),
+    //     (Mutation::remove_link,  0.02),
+    //     (Mutation::add_neuron,   0.02),
+    //     (Mutation::remove_neuron,0.005),
+    //     (Mutation::reset_link,   0.03),
+    //     (Mutation::nudge_link,   0.80),
+    //     (Mutation::toggle_link,  0.02),
+    //     (Mutation::none,         0.025),
+    // ];
+    pub const mutation_probabilities : [(Mutation, f32); 8] = [
+        (Mutation::add_link, 0.15),
+        (Mutation::remove_link, 0.1),
+        (Mutation::add_neuron, 0.1),
+        (Mutation::remove_neuron, 0.05),
+        (Mutation::reset_link, 0.1),
+        (Mutation::nudge_link, 0.37),
+        (Mutation::toggle_link, 0.03),
+        (Mutation::none, 0.1)
     ];
 }
