@@ -38,36 +38,39 @@ impl PopManager
     }
 
     pub fn print_generation_statistics(&self)
-    {        
-        let mut builder = Builder::default();
-        builder.push_record(["id", "avg fitness", "size", "best fitness", "age", "stag_count", "representative id"]);
-
-        let mut data : Vec<(usize, f32, usize, f32, u16, usize, usize)> = vec![];
-
-
-        for s in &self.species 
+    {
+        if Config::use_species
         {
-            data.push((s.id, s.avg_fitness, s.members.len(), s.best_fitness, s.age, s.stagnant_counter, s.representative.id));
+            let mut builder = Builder::default();
+            builder.push_record(["id", "avg fitness", "size", "best fitness", "age", "stag_count", "representative id"]);
+
+            let mut data : Vec<(usize, f32, usize, f32, u16, usize, usize)> = vec![];
+
+
+            for s in &self.species 
+            {
+                data.push((s.id, s.avg_fitness, s.members.len(), s.best_fitness, s.age, s.stagnant_counter, s.representative.id));
+            }
+            data.sort_by(|a, b| b.1.partial_cmp(&a.1).expect("ERR"));
+
+            data.iter().map(|(a, b, c, d, e, f, g)| vec![a.to_string(), b.to_string(), c.to_string(), d.to_string(), e.to_string(), f.to_string(), g.to_string()])
+                .for_each(|a| builder.push_record(a));
+
+            let mut table = builder.build();
+            table.with(Style::rounded());
+
+            println!("{table}");
         }
-        data.sort_by(|a, b| b.1.partial_cmp(&a.1).expect("ERR"));
-
-        data.iter().map(|(a, b, c, d, e, f, g)| vec![a.to_string(), b.to_string(), c.to_string(), d.to_string(), e.to_string(), f.to_string(), g.to_string()])
-            .for_each(|a| builder.push_record(a));
-
-        let mut table = builder.build();
-        table.with(Style::rounded());
-
-        println!("{table}");
-        
 
         println!("gen:{}", self.generation);
         println!("best fitness:{}", self.networks[0].fitness.unwrap_or_default());
         println!("avg fitness:{}", self.get_avg_fitness());
         println!("avg neuron count: {}", self.get_avg_num_neurons());
         println!("avg link count: {}", self.get_avg_num_links());
-        println!("{}", self.delta_t);
+        
         if Config::use_species
         {
+            println!("{}", self.delta_t);
             println!("num species: {}", self.species.len());
         }
 

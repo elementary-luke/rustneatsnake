@@ -14,7 +14,7 @@ impl Config
     pub const fps : u32 = 60; //15 is good
 
     //species
-    pub const use_species : bool = true;
+    pub const use_species : bool = false;
     pub const shuffle_species_order : bool = false; // whether the order of the species are shuffled every generation to stop species higher up from alsways getting networks that couldve also been in other species
     pub const best_as_representative : bool = true; //if false representative is randomly picked for the next generation
     pub const target_num_species : usize = 14;
@@ -25,7 +25,7 @@ impl Config
     pub const mut_not_cross_prob : f32 = 0.25; // probability that an offspring is a mutated clone not a crossover
 
     //network
-    pub const num_start_links : usize = 1;
+    pub const num_start_links : usize = 120;
     pub const link_mean : f32 = 0.0;
     pub const link_sigma : f32 = 0.5;
     pub const min_link_weight : f32 = -5.0;
@@ -48,7 +48,7 @@ impl Config
     pub const cE : f32 = 1.0;
     pub const cD : f32 = 1.0;
     pub const cW : f32 = 0.4;
-    pub const base_delta_t : f32 = 3.0; // max genetic distance for 2 networks to be in the same specie at the start
+    pub const base_delta_t : f32 = 0.0; // max genetic distance for 2 networks to be in the same specie at the start
     pub const delta_t_adjustment : f32 = 0.0; // set to 0.0 to disable
 
 
