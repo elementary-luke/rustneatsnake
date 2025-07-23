@@ -263,15 +263,15 @@ impl Grid
 
             if i == 0 || i == 1
             {
-                inputs[i + 4] =  1.0 - displacement / max_verti;
+                inputs[i + 4] =  1.0 / (displacement);
             }
             else if i == 2 || i == 3
             {
-                inputs[i + 4] =  1.0 - displacement / max_hori;
+                inputs[i + 4] =  1.0 / (displacement);
             }
             else
             {
-                inputs[i + 4] =  1.0 - displacement / max_hypo;
+                inputs[i + 4] =  1.0 / (displacement);
             }
         }
 
@@ -303,15 +303,15 @@ impl Grid
                 let displacement = (pos - self.segments[0]).fmagnitude();
                 if i == 0 || i == 1
                 {
-                    inputs[i + 12] =  1.0 - displacement / max_verti;
+                    inputs[i + 12] =  1.0 / (displacement);
                 }
                 else if i == 2 || i == 3
                 {
-                    inputs[i + 12] =  1.0 - displacement / max_hori;
+                    inputs[i + 12] =  1.0 / (displacement);
                 }
                 else
                 {
-                    inputs[i + 12] =  1.0 - displacement / max_hypo;
+                    inputs[i + 12] =  1.0 / (displacement);
                 }
             }
             else

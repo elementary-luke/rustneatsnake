@@ -28,9 +28,9 @@ fn main()
     let mut manager = PopManager::new();
     manager.initialise_base_population();
 
-    for i in 0..500
+    for i in 0..2000
     {
-        if i % 1 == 0
+        if i % 10 == 0
         {
             manager.print_generation_statistics();
         }
@@ -71,8 +71,9 @@ fn main()
 
         if Config::autorun || space
         {
-            runner.step();
             // println!("{:?}", runner.grid.get_inputs());
+            // println!("{:?}", runner.agent.net.get_outputs());
+            runner.step();
         }
         
     }

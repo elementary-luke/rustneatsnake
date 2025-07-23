@@ -106,6 +106,7 @@ impl Network
 
         if possible_inputs.len() == 0
         {
+            self.add_link(innovation_count, change_map);
             return;
         }
         
@@ -118,6 +119,7 @@ impl Network
 
         if possible_outputs.len() == 0
         {
+            self.add_link(innovation_count, change_map);
             return;
         }
         
@@ -126,12 +128,14 @@ impl Network
         //if a link between these two already exists, terminate
         if self.links.iter().any(|link| link.from == input_id && link.from == output_id)
         {
-            self.links.iter_mut().find(|link| link.from == input_id && link.from == output_id).unwrap().enabled = true;
+            self.add_link(innovation_count, change_map);
+            // self.links.iter_mut().find(|link| link.from == input_id && link.from == output_id).unwrap().enabled = true;
             return;
         }
 
         if self.cycle(input_id, output_id)
         {
+            self.add_link(innovation_count, change_map);
             return;
         }
 
@@ -483,7 +487,7 @@ impl Network
                     
                     if d.enabled != r.enabled
                     {
-                        new_link.enabled = random_range(0.0..=1.0) <= 0.25;
+                        new_link.enabled = random_range(0.0..=1.0) <= 0.75;
                     }
 
                     if !Config::randomly_choose_matching_genes

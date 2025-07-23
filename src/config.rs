@@ -14,7 +14,7 @@ impl Config
     pub const fps : u32 = 30;
 
     //species
-    pub const use_species : bool = false;
+    pub const use_species : bool = true;
     pub const shuffle_species_order : bool = false; // whether the order of the species are shuffled every generation to stop species higher up from alsways getting networks that couldve also been in other species
     pub const best_as_representative : bool = true; //if false representative is randomly picked for the next generation
     pub const target_num_species : usize = 20;
@@ -27,10 +27,10 @@ impl Config
     //network
     pub const num_start_links : usize = 1;
     pub const link_mean : f32 = 0.0;
-    pub const link_sigma : f32 = 1.0;
-    pub const min_link_weight : f32 = -5.0;
-    pub const max_link_weight : f32 = 5.0;
-    pub const link_mutate_power : f32 = 1.0;
+    pub const link_sigma : f32 = 0.3;
+    pub const min_link_weight : f32 = -1.0;
+    pub const max_link_weight : f32 = 1.0;
+    pub const link_mutate_power : f32 = 0.3;
     pub const input_count : usize = 26;
     pub const output_count : usize = 4;
     pub const print_disabled : bool = false; // whether to show disabled links in the final digraph
@@ -38,7 +38,7 @@ impl Config
     //population
     pub const survival_percentage : f32 = 0.4;
     pub const population_size : usize = 100;
-    pub const cull_method : i16 = 0; // only inportant when species off 0:top x% survive, 1: higher fitness means better chance to survive, 2: tournament
+    pub const cull_method : i16 = 1; // only inportant when species off 0:top x% survive, 1: higher fitness means better chance to survive, 2: tournament
     pub const force_reevalutaion : bool = true; // if true all networks will be evaluated, even if they were evaluated in a previous generation
     pub const global_change_map : bool = true; // if true, the same mutation in another generation will have the same innovation_number
 
@@ -54,13 +54,17 @@ impl Config
 
 
     //INPUTS
-    //0-7     : fruit
-    //8-15    : walls
-    //16-23   : body
-    //24-27   : direction
-    //28      : length
-    //29      : bias
+    //0-3     : fruit
+    //4-11    : walls
+    //12-19   : body
+    //20-23   : direction
+    //24      : length
+    //25      : bias
 
+    //26 up
+    //27 down
+    //28 left
+    //29right
 
     //game
     pub const grid_width : usize = 15;
@@ -73,7 +77,7 @@ impl Config
 
     //fitness evaluation
     pub const use_multithreading : bool = true;
-    pub const num_simulations : usize = 5;
+    pub const num_simulations : usize = 20;
 
     //relative probabilites, don't necessarily have to add up to 1
     // pub const mutation_probabilities : [(Mutation, f32); 8] = [
