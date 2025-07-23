@@ -82,10 +82,12 @@ impl Grid
     {
         if !self.running
         {
-            return
+            return;
         }
 
-        if self.steps_without_fruit >= (Config::grid_height * Config::grid_width) as u16
+        let timeout = ((Config::grid_height * Config::grid_width) as u16) + (self.segments.len() as u16 * 50);
+        
+        if self.steps_without_fruit >= timeout
         {
             self.running = false;
             return;
@@ -200,44 +202,48 @@ impl Grid
 
         let dirs = vec![Vec2i::from((0, -1)), Vec2i::from((0, 1)), Vec2i::from((-1, 0)), Vec2i::from((1, 0)), Vec2i::from((1, -1)), Vec2i::from((1, 1)), Vec2i::from((-1, 1)), Vec2i::from((-1, -1))];
 
-        //normalise vectors by hypoteneuse of grid
-        let max_dist = ((Config::grid_height as f32).powf(2.0) + (Config::grid_width as f32).powf(2.0)).sqrt();
+        //normalise vectors by max possible distance
+        let max_hori = (Config::grid_width - 1) as f32;
+        let max_verti = (Config::grid_height - 1) as f32;
+        let max_hypo = (((Config::grid_height - 1).pow(2) + (Config::grid_width - 1).pow(2)) as f32).sqrt();
 
         //fruit
-        for (i, dir) in dirs.iter().enumerate() {
-            let mut pos = self.segments[0] + *dir;
-            let mut found_fruit = false;
+        let fruit_pos_diff = self.fruit_pos - self.segments[0];
 
-            loop {
-                match self.data[pos.y as usize][pos.x as usize] {
-                    Object::Fruit => {
-                        found_fruit = true;
-                        break;
-                    }
+        if fruit_pos_diff.y < 0 // fruit above
+        {
+            inputs[0] = 1.0 - (fruit_pos_diff.y as f32 / max_verti).abs();
+            inputs[1] = 0.0;
+        }
+        else if fruit_pos_diff.y > 0
+        {
+            inputs[0] = 0.0;
+            inputs[1] = 1.0 - (fruit_pos_diff.y as f32 / max_verti).abs();
+        }
+        else
+        {
+            inputs[0] = 0.0;
+            inputs[1] = 0.0;
+        }
 
-                    Object::Wall => {
-                        break;
-                    }
-
-                    _ => {
-                        pos += *dir;
-                    }
-                }
-            }
-
-            if found_fruit
-            {
-                let displacement = (pos - self.segments[0]).fmagnitude();
-                inputs[i] = 1.0 - displacement / max_dist;
-            }
-            else
-            {
-                inputs[i] = 0.0;
-            }
-            
+        if fruit_pos_diff.x < 0 // fruit left
+        {
+            inputs[2] = 1.0 - (fruit_pos_diff.x as f32 / max_hori).abs();
+            inputs[3] = 0.0;
+        }
+        else if fruit_pos_diff.x > 0
+        {
+            inputs[2] = 0.0;
+            inputs[3] = 1.0 - (fruit_pos_diff.x as f32 / max_hori).abs();
+        }
+        else
+        {
+            inputs[2] = 0.0;
+            inputs[3] = 0.0;
         }
 
         //walls
+        //hori
         for (i, dir) in dirs.iter().enumerate() {
             let mut pos = self.segments[0] + *dir;
             
@@ -255,7 +261,18 @@ impl Grid
 
             let displacement = (pos - self.segments[0]).fmagnitude();
 
-            inputs[i + 8] =  displacement / max_dist;
+            if i == 0 || i == 1
+            {
+                inputs[i + 4] =  1.0 - displacement / max_verti;
+            }
+            else if i == 2 || i == 3
+            {
+                inputs[i + 4] =  1.0 - displacement / max_hori;
+            }
+            else
+            {
+                inputs[i + 4] =  1.0 - displacement / max_hypo;
+            }
         }
 
 
@@ -284,24 +301,36 @@ impl Grid
             if found_body
             {
                 let displacement = (pos - self.segments[0]).fmagnitude();
-                inputs[i + 16] = 1.0 - displacement / max_dist;
+                if i == 0 || i == 1
+                {
+                    inputs[i + 12] =  1.0 - displacement / max_verti;
+                }
+                else if i == 2 || i == 3
+                {
+                    inputs[i + 12] =  1.0 - displacement / max_hori;
+                }
+                else
+                {
+                    inputs[i + 12] =  1.0 - displacement / max_hypo;
+                }
             }
             else
             {
-                inputs[i + 16] = 0.0;
+                inputs[i + 12] = 0.0;
             }
 
         }
 
         //direction of snake
         for (i, dir) in dirs.iter().take(4).enumerate() {
-            inputs[i + 24] = (self.dir == *dir) as i16 as f32
+            inputs[i + 20] = (self.dir == *dir) as i16 as f32
         }
 
-        inputs[28] = self.segments.len() as f32 / (Config::grid_height * Config::grid_width) as f32;
+        //length of snake
+        inputs[24] = self.segments.len() as f32 / ((Config::grid_height - 2) * (Config::grid_width - 2)) as f32;
         
         //bias neuron
-        inputs[29] = 1.0;
+        inputs[25] = 1.0;
 
         return inputs;
     }

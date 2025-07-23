@@ -106,14 +106,14 @@ impl PopManager
 
     pub fn adjust_delta_t(&mut self)
     {
-        if self.species.len() > Config::target_num_species
-        {
-            self.delta_t += Config::delta_t_adjustment;
-        } 
-        else if self.species.len() < Config::target_num_species
-        {
-            self.delta_t -= Config::delta_t_adjustment;
+        let diff = (self.species.len() as f32 - Config::target_num_species as f32).abs();
+        let adjustment = Config::delta_t_adjustment * (diff / Config::target_num_species as f32);
+        if self.species.len() > Config::target_num_species {
+            self.delta_t += adjustment;
+        } else if self.species.len() < Config::target_num_species {
+            self.delta_t -= adjustment;
         }
+        self.delta_t = self.delta_t.clamp(0.5, 10.0);
     }
 
     pub fn initialise_base_population(&mut self)
@@ -178,7 +178,7 @@ impl PopManager
 
     pub fn cutoff_cull(&mut self)
     {
-        let num_to_keep = Config::survival_percentage  as usize * self.networks.len();
+        let num_to_keep = (Config::survival_percentage * self.networks.len() as f32)as usize ;
         self.networks.truncate(num_to_keep);
     }
 
@@ -278,7 +278,6 @@ impl PopManager
             if !species_found
             {
                 let mut new_specie = Specie::new(self.networks[i].clone(), self.specie_count);
-                self.specie_count += 1;
                 self.specie_count += 1;
                 new_specie.members.push(i);
                 self.species.push(new_specie);

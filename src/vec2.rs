@@ -27,7 +27,7 @@ impl Vec2i
     }
     pub fn fmagnitude(&self) -> f32
     {
-        return ((self.x as f32).powf(2.0) + (self.y as f32).powf(2.0)).sqrt();
+        return ((self.x.pow(2) + (self.y).pow(2)) as f32).sqrt();
     }
     pub fn normalised(&self) -> Vec2i
     {

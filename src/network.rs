@@ -366,7 +366,10 @@ impl Network
             }
             else
             {
-                g.add_edge(from, to, link.weight.to_string() + " disabled");
+                if Config::print_disabled
+                {
+                    g.add_edge(from, to, link.weight.to_string() + " disabled");
+                }
             }
         }
 

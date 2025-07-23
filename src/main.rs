@@ -28,9 +28,9 @@ fn main()
     let mut manager = PopManager::new();
     manager.initialise_base_population();
 
-    for i in 0..1000
+    for i in 0..500
     {
-        if i % 10 == 0
+        if i % 1 == 0
         {
             manager.print_generation_statistics();
         }
