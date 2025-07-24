@@ -15,7 +15,7 @@ impl Config
 
     //species
     pub const use_species : bool = true;
-    pub const shuffle_species_order : bool = false; // whether the order of the species are shuffled every generation to stop species higher up from alsways getting networks that couldve also been in other species
+    pub const shuffle_species_order : bool = true; // whether the order of the species are shuffled every generation to stop species higher up from alsways getting networks that couldve also been in other species
     pub const best_as_representative : bool = true; //if false representative is randomly picked for the next generation
     pub const target_num_species : usize = 20;
     pub const stagnation_threshold : usize = 25; // if a species is stagnant for over x generations remove it
@@ -27,10 +27,10 @@ impl Config
     //network
     pub const num_start_links : usize = 1;
     pub const link_mean : f32 = 0.0;
-    pub const link_sigma : f32 = 0.3;
-    pub const min_link_weight : f32 = -1.0;
-    pub const max_link_weight : f32 = 1.0;
-    pub const link_mutate_power : f32 = 0.3;
+    pub const link_sigma : f32 = 1.0;
+    pub const min_link_weight : f32 = -5.0;
+    pub const max_link_weight : f32 = 5.0;
+    pub const link_mutate_power : f32 = 1.0;
     pub const input_count : usize = 26;
     pub const output_count : usize = 4;
     pub const print_disabled : bool = false; // whether to show disabled links in the final digraph
@@ -45,12 +45,15 @@ impl Config
 
     pub const advanced_crossover : bool = true; //if advanced, it follows the NEAT sepcification, if not we just add everything from dominant and if theres a match then pick one
     pub const randomly_choose_matching_genes : bool = true; // if true randomly choose gene when genes match, otherwise average
+    pub const link_disable_probability : f32 = 0.75; // chance that if 1 at least matching gene is disabled, the gene in the kid is too
 
     pub const cE : f32 = 1.0;
     pub const cD : f32 = 1.0;
     pub const cW : f32 = 0.4;
     pub const base_delta_t : f32 = 3.0; // max genetic distance for 2 networks to be in the same specie at the start
     pub const delta_t_adjustment : f32 = 0.05; // set to 0.0 to disable
+    pub const min_delta_t : f32 = 0.0;
+    pub const max_delta_t : f32 = 15.0;
 
 
     //INPUTS
@@ -77,7 +80,7 @@ impl Config
 
     //fitness evaluation
     pub const use_multithreading : bool = true;
-    pub const num_simulations : usize = 20;
+    pub const num_simulations : usize = 10;
 
     //relative probabilites, don't necessarily have to add up to 1
     // pub const mutation_probabilities : [(Mutation, f32); 8] = [
@@ -90,24 +93,24 @@ impl Config
     //     (Mutation::toggle_link, 0.03),
     //     (Mutation::none, 0.1),
     // ];
-    // pub const mutation_probabilities: [(Mutation, f32); 8] = [
-    //     (Mutation::add_link,     0.16),
-    //     (Mutation::remove_link,  0.00),
-    //     (Mutation::add_neuron,   0.06),
-    //     (Mutation::remove_neuron, 0.0),
-    //     (Mutation::reset_link,   0.03),
-    //     (Mutation::nudge_link,   0.80),
-    //     (Mutation::toggle_link,  0.02),
-    //     (Mutation::none,         0.025),
-    // ];
     pub const mutation_probabilities: [(Mutation, f32); 8] = [
-    (Mutation::add_link,     0.20), 
-    (Mutation::remove_link,  0.02),
-    (Mutation::add_neuron,   0.08),
-    (Mutation::remove_neuron, 0.01),
-    (Mutation::reset_link,   0.05),
-    (Mutation::nudge_link,   0.60),
-    (Mutation::toggle_link,  0.02),
-    (Mutation::none,         0.02),
-];
+        (Mutation::add_link,     0.16),
+        (Mutation::remove_link,  0.02),
+        (Mutation::add_neuron,   0.06),
+        (Mutation::remove_neuron, 0.01),
+        (Mutation::reset_link,   0.03),
+        (Mutation::nudge_link,   0.80),
+        (Mutation::toggle_link,  0.02),
+        (Mutation::none,         0.025),
+    ];
+//     pub const mutation_probabilities: [(Mutation, f32); 8] = [
+//     (Mutation::add_link,     0.20), 
+//     (Mutation::remove_link,  0.02),
+//     (Mutation::add_neuron,   0.08),
+//     (Mutation::remove_neuron, 0.01),
+//     (Mutation::reset_link,   0.05),
+//     (Mutation::nudge_link,   0.60),
+//     (Mutation::toggle_link,  0.02),
+//     (Mutation::none,         0.02),
+// ];
 }

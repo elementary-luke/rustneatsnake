@@ -66,7 +66,7 @@ impl PopManager
         println!("best fitness:{}", self.networks[0].fitness.unwrap_or_default());
         println!("avg fitness:{}", self.get_avg_fitness());
         println!("avg neuron count: {}", self.get_avg_num_neurons());
-        println!("avg link count: {}", self.get_avg_num_links());
+        println!("avg link count: {:?}", self.get_avg_num_links());
         
         if Config::use_species
         {
@@ -113,7 +113,7 @@ impl PopManager
         } else if self.species.len() < Config::target_num_species {
             self.delta_t -= adjustment;
         }
-        self.delta_t = self.delta_t.clamp(0.5, 10.0);
+        self.delta_t = self.delta_t.clamp(Config::min_delta_t, Config::max_delta_t);
     }
 
     pub fn initialise_base_population(&mut self)
@@ -237,7 +237,7 @@ impl PopManager
         //TODO ADD OPTION FOR RANDOM!!
         for specie in  &mut self.species
         {
-            specie.sort_members_by_fitness(&self.networks);//JUST CHOOSE MAX!!
+            specie.sort_members_by_fitness(&self.networks);//TODO JUST CHOOSE MAX!!
             specie.representative = self.networks[specie.members[0]].clone();
         }
     }
@@ -310,17 +310,38 @@ impl PopManager
 
         self.set_species_stats();
         let proportions : Vec<usize> = self.get_species_proportions();
+        
 
         for (i, quota) in proportions.iter().enumerate()
         {
+            let total_fitness : f32 = self.species[i].members.iter().map(|x| self.networks[*x].fitness.unwrap_or_default()).sum();
             for _ in 0..*quota
             {
-                let p1 = self.species[i].members.choose(&mut rand::rng()).unwrap();
-                let p2 = self.species[i].members.choose(&mut rand::rng()).unwrap();
+                let mut p1 = self.species[i].members[0];
+                let mut r = random_range(0.0..=total_fitness);
+                for &net_idx in &self.species[i].members {
+                    r -= self.networks[net_idx].fitness.unwrap_or_default();
+                    if r <= 0.0 {
+                        p1 = net_idx;
+                        break;
+                    }
+                }
+                
+                let mut p2 = self.species[i].members[0];
+                let mut r = random_range(0.0..=total_fitness);
+                for &net_idx in &self.species[i].members {
+                    r -= self.networks[net_idx].fitness.unwrap_or_default();
+                    if r <= 0.0 {
+                        p2 = net_idx;
+                        break;
+                    }
+                }
+
+
                 let mut offspring = if random_range(0.0..=1.0) > Config::mut_not_cross_prob {
-                    self.networks[*p1].crossover(&self.networks[*p2], &mut self.net_count)
+                    self.networks[p1].crossover(&self.networks[p2], &mut self.net_count)
                 } else {
-                    self.networks[*p1].crossover(&self.networks[*p1], &mut self.net_count) // clone
+                    self.networks[p1].crossover(&self.networks[p1], &mut self.net_count) // clone
                 };
                 offspring.mutate(&mut self.innovation_count, &mut self.change_map);
                 offspring.fitness = None;
@@ -444,9 +465,10 @@ impl PopManager
         return self.networks.iter().map(|net| net.neurons.len()).sum::<usize>() as f32 / self.networks.len() as f32;
     }
 
-    pub fn get_avg_num_links(&self) -> f32
+    pub fn get_avg_num_links(&self) -> (f32, f32)
     {
-        return self.networks.iter().map(|net| net.links.len()).sum::<usize>() as f32 / self.networks.len() as f32;
+        return (self.networks.iter().map(|net| net.get_num_enabled_links()).sum::<usize>() as f32 / self.networks.len() as f32, 
+                self.networks.iter().map(|net| net.get_num_disabled_links()).sum::<usize>() as f32 / self.networks.len() as f32);
     }
 
     pub fn get_avg_fitness(&self) -> f32

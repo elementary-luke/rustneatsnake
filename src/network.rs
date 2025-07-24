@@ -487,7 +487,7 @@ impl Network
                     
                     if d.enabled != r.enabled
                     {
-                        new_link.enabled = random_range(0.0..=1.0) <= 0.75;
+                        new_link.enabled = random_range(0.0..=1.0) >= Config::link_disable_probability
                     }
 
                     if !Config::randomly_choose_matching_genes
@@ -631,6 +631,16 @@ impl Network
     pub fn new(id : usize) -> Network
     {
         return Network {neurons : HashMap::new(), links : vec![], fitness : None, id : id}
+    }
+
+    pub fn get_num_enabled_links(&self) -> usize
+    {
+        return self.links.iter().filter(|x| (*x).enabled).count();
+    }
+
+    pub fn get_num_disabled_links(&self) -> usize
+    {
+        return self.links.iter().filter(|x| !(*x).enabled).count();
     }
 }
 
