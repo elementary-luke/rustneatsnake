@@ -20,17 +20,17 @@ impl Config
     pub const target_num_species : usize = 20;
     pub const stagnation_threshold : usize = 25; // if a species is stagnant for over x generations remove it
     pub const stagnation_factor : f32 = 1.00; // how much better the fitness has to be compared to the current species best to reset stagnation counter
-    pub const elitistm_num : usize = 2; //how many of the best per generation to keep unchanged
+    pub const elitistm_num : usize = 1; //how many of the best per generation to keep unchanged
     pub const mutate_elites : bool = false; // whether elites should be mutated or should just go into the next generation untouched
     pub const mut_not_cross_prob : f32 = 0.25; // probability that an offspring is a mutated clone not a crossover
 
     //network
-    pub const num_start_links : usize = 1;
+    pub const num_start_links : usize = 3;
     pub const link_mean : f32 = 0.0;
     pub const link_sigma : f32 = 1.0;
     pub const min_link_weight : f32 = -5.0;
     pub const max_link_weight : f32 = 5.0;
-    pub const link_mutate_power : f32 = 1.0;
+    pub const link_mutate_power : f32 = 0.2;
     pub const input_count : usize = 26;
     pub const output_count : usize = 4;
     pub const print_disabled : bool = false; // whether to show disabled links in the final digraph
@@ -45,7 +45,7 @@ impl Config
 
     pub const advanced_crossover : bool = true; //if advanced, it follows the NEAT sepcification, if not we just add everything from dominant and if theres a match then pick one
     pub const randomly_choose_matching_genes : bool = true; // if true randomly choose gene when genes match, otherwise average
-    pub const link_disable_probability : f32 = 0.75; // chance that if 1 at least matching gene is disabled, the gene in the kid is too
+    pub const link_disable_probability : f32 = 0.75; // chance that if 1 at least matching gene is disabled, the gene in the offspring is too
 
     pub const cE : f32 = 1.0;
     pub const cD : f32 = 1.0;
@@ -79,7 +79,7 @@ impl Config
     pub const step_value : f32 = 1.0;
 
     //fitness evaluation
-    pub const use_multithreading : bool = true;
+    pub const use_multithreading : bool = false;
     pub const num_simulations : usize = 10;
 
     //relative probabilites, don't necessarily have to add up to 1
@@ -93,14 +93,15 @@ impl Config
     //     (Mutation::toggle_link, 0.03),
     //     (Mutation::none, 0.1),
     // ];
-    pub const mutation_probabilities: [(Mutation, f32); 8] = [
+    pub const mutation_probabilities: [(Mutation, f32); 9] = [
         (Mutation::add_link,     0.16),
         (Mutation::remove_link,  0.02),
         (Mutation::add_neuron,   0.06),
         (Mutation::remove_neuron, 0.01),
         (Mutation::reset_link,   0.03),
         (Mutation::nudge_link,   0.80),
-        (Mutation::toggle_link,  0.02),
+        (Mutation::enable_link,  0.1),
+        (Mutation::disable_link,  0.02),
         (Mutation::none,         0.025),
     ];
 //     pub const mutation_probabilities: [(Mutation, f32); 8] = [

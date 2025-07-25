@@ -446,7 +446,7 @@ impl PopManager
         {
             for i in 0..self.networks.len()
             {
-                if self.networks[i].fitness.is_none() // if kept through elitism, don't need to rerun
+                if Config::force_reevalutaion || self.networks[i].fitness.is_none() // if kept through elitism, don't need to rerun
                 {
                     let mut agent = Agent::new(self.networks[i].clone());
                     self.networks[i].fitness = Some(agent.evaluate());

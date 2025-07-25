@@ -106,7 +106,7 @@ impl Network
 
         if possible_inputs.len() == 0
         {
-            self.add_link(innovation_count, change_map);
+            // self.add_link(innovation_count, change_map);
             return;
         }
         
@@ -119,23 +119,23 @@ impl Network
 
         if possible_outputs.len() == 0
         {
-            self.add_link(innovation_count, change_map);
+            // self.add_link(innovation_count, change_map);
             return;
         }
         
         let output_id : usize= *possible_outputs.choose(&mut rand::rng()).unwrap();
 
         //if a link between these two already exists, terminate
-        if self.links.iter().any(|link| link.from == input_id && link.from == output_id)
+        if self.links.iter().any(|link| link.from == input_id && link.to == output_id)
         {
-            self.add_link(innovation_count, change_map);
+            // self.add_link(innovation_count, change_map);
             // self.links.iter_mut().find(|link| link.from == input_id && link.from == output_id).unwrap().enabled = true;
             return;
         }
 
         if self.cycle(input_id, output_id)
         {
-            self.add_link(innovation_count, change_map);
+            // self.add_link(innovation_count, change_map);
             return;
         }
 
@@ -297,7 +297,8 @@ impl Network
                     Mutation::remove_neuron => self.remove_hidden_neuron(),
                     Mutation::reset_link => self.reset_link_weight(),
                     Mutation::nudge_link  => self.nudge_link(),
-                    Mutation::toggle_link => self.toggle_link(),
+                    Mutation::enable_link => self.enable_link(),
+                    Mutation::disable_link => self.disable_link(),
                     Mutation::none  => (),
                 }
                 return;
@@ -314,6 +315,28 @@ impl Network
         }
         let link = self.links.choose_mut(&mut rand::rng()).unwrap();
         link.enabled = !link.enabled
+    }
+
+    pub fn enable_link(&mut self)
+    {
+        let mut possible_links = self.links.iter_mut().filter(|x| !x.enabled).collect::<Vec<&mut Link>>();
+        if possible_links.len() == 0
+        {
+            return;
+        }
+        let link = possible_links.choose_mut(&mut rand::rng()).unwrap();
+        link.enabled = true;
+    }
+
+    pub fn disable_link(&mut self)
+    {
+        let mut possible_links = self.links.iter_mut().filter(|x| x.enabled).collect::<Vec<&mut Link>>();
+        if possible_links.len() == 0
+        {
+            return;
+        }
+        let link = possible_links.choose_mut(&mut rand::rng()).unwrap();
+        link.enabled = false;
     }
 
 
@@ -658,6 +681,7 @@ pub enum Mutation
     remove_link,
     reset_link,
     nudge_link,
-    toggle_link,
+    enable_link,
+    disable_link,
     none,
 }
