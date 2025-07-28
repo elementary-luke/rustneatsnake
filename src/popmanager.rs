@@ -70,7 +70,7 @@ impl PopManager
         
         if Config::use_species
         {
-            println!("{}", self.delta_t);
+            println!("delta_t: {}", self.delta_t);
             println!("num species: {}", self.species.len());
         }
 
@@ -296,13 +296,16 @@ impl PopManager
         }
 
         let mut new_generation : Vec<Network> = vec![];
-        //keep top through elitism
-        for i in 0..Config::elitistm_num
+        //keep global top through elitism
+        for i in 0..Config::global_elitistm_num
         {
             let mut offspring = self.networks[i].clone();
             if Config::mutate_elites
             {
                 offspring.mutate(&mut self.innovation_count, &mut self.change_map);
+                //TODO PUT CHANGE NET COUNT IN NETWORK CLASS NOT HERE
+                offspring.id = self.net_count;
+                self.net_count += 1;
                 offspring.fitness = None;
             }
             new_generation.push(offspring);
@@ -311,11 +314,41 @@ impl PopManager
         self.set_species_stats();
         let proportions : Vec<usize> = self.get_species_proportions();
         
+        //sort species by fitness for elitism
+        for specie in  &mut self.species
+        {
+            specie.sort_members_by_fitness(&self.networks);
+        }
 
         for (i, quota) in proportions.iter().enumerate()
         {
+            // println!("aa");
+            // keep top of each species through elitism
+            for j in 0..Config::species_elitistm_num
+            {
+                if *quota - j <= 0
+                {
+                    break;
+                }
+                let net_i = self.species[i].members[j];
+                let mut offspring = self.networks[net_i].clone();
+                if Config::mutate_elites
+                {
+                    offspring.mutate(&mut self.innovation_count, &mut self.change_map);
+                    offspring.id = self.net_count;
+                    self.net_count += 1;
+                    offspring.fitness = None;
+                }
+                new_generation.push(offspring);
+            }
+
+            if Config::species_elitistm_num >= *quota
+            {
+                continue;
+            }
+
             let total_fitness : f32 = self.species[i].members.iter().map(|x| self.networks[*x].fitness.unwrap_or_default()).sum();
-            for _ in 0..*quota
+            for _ in 0..(*quota - Config::species_elitistm_num)
             {
                 let mut p1 = self.species[i].members[0];
                 let mut r = random_range(0.0..=total_fitness);
@@ -339,7 +372,7 @@ impl PopManager
 
 
                 let mut offspring = if random_range(0.0..=1.0) > Config::mut_not_cross_prob {
-                    self.networks[p1].crossover(&self.networks[p2], &mut self.net_count)
+                    self.networks[p1].crossover(&self.networks[p2], &mut self.net_count) // crossover
                 } else {
                     self.networks[p1].crossover(&self.networks[p1], &mut self.net_count) // clone
                 };
@@ -347,16 +380,14 @@ impl PopManager
                 offspring.fitness = None;
                 new_generation.push(offspring);
             }
-        }
-
-
+        };
         self.networks = new_generation;
     }
 
     pub fn get_species_proportions(&mut self) -> Vec<usize>
     {
         let total_avg_fitness : f32 = self.species.iter().map(|x| x.avg_fitness).sum();
-        let pop_size = Config::population_size - Config::elitistm_num;
+        let pop_size = Config::population_size - Config::global_elitistm_num;
 
         //qs for each s
         let raw_quotas: Vec<f32> = self.species.iter().map(|s| (s.avg_fitness / total_avg_fitness) * (pop_size as f32)).collect();
@@ -397,7 +428,7 @@ impl PopManager
         let mut new_generation : Vec<Network> = vec![];
 
         //keep through elitism
-        for i in 0..Config::elitistm_num
+        for i in 0..Config::global_elitistm_num
         {
             new_generation.push(self.networks[i].clone());
         }

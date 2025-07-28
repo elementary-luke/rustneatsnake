@@ -200,7 +200,7 @@ impl Grid
     pub fn get_inputs(&self) -> Vec<f32> {
         let mut inputs : Vec<f32> = vec![0.0; Config::input_count];
 
-        let dirs = vec![Vec2i::from((0, -1)), Vec2i::from((0, 1)), Vec2i::from((-1, 0)), Vec2i::from((1, 0)), Vec2i::from((1, -1)), Vec2i::from((1, 1)), Vec2i::from((-1, 1)), Vec2i::from((-1, -1))];
+        let dirs = vec![Vec2i::from((0, -1)), Vec2i::from((0, 1)), Vec2i::from((-1, 0)), Vec2i::from((1, 0))];
 
         //normalise vectors by max possible distance
         let max_hori = (Config::grid_width - 1) as f32;
@@ -243,7 +243,6 @@ impl Grid
         }
 
         //walls
-        //hori
         for (i, dir) in dirs.iter().enumerate() {
             let mut pos = self.segments[0] + *dir;
             
@@ -268,10 +267,6 @@ impl Grid
             else if i == 2 || i == 3
             {
                 inputs[i + 4] =  1.0 - (displacement / max_hori) ;
-            }
-            else
-            {
-                inputs[i + 4] =  1.0 - (displacement / max_hypo);
             }
         }
 
@@ -303,34 +298,30 @@ impl Grid
                 let displacement = (pos - self.segments[0]).fmagnitude();
                 if i == 0 || i == 1
                 {
-                    inputs[i + 12] =  1.0 - (displacement / max_verti);
+                    inputs[i + 8] =  1.0 - (displacement / max_verti);
                 }
                 else if i == 2 || i == 3
                 {
-                    inputs[i + 12] =  1.0 - (displacement / max_hori);
-                }
-                else
-                {
-                    inputs[i + 12] =  1.0 - (displacement / max_hypo);
+                    inputs[i + 8] =  1.0 - (displacement / max_hori);
                 }
             }
             else
             {
-                inputs[i + 12] = 0.0;
+                inputs[i + 8] = 0.0;
             }
 
         }
 
         //direction of snake
         for (i, dir) in dirs.iter().take(4).enumerate() {
-            inputs[i + 20] = (self.dir == *dir) as i16 as f32
+            inputs[i + 12] = (self.dir == *dir) as i16 as f32
         }
 
-        //length of snake
-        inputs[24] = self.segments.len() as f32 / ((Config::grid_height - 2) * (Config::grid_width - 2)) as f32;
+        // //length of snake
+        // inputs[13] = self.segments.len() as f32 / ((Config::grid_height - 2) * (Config::grid_width - 2)) as f32;
         
         //bias neuron
-        inputs[25] = 1.0;
+        inputs[16] = 1.0;
 
         return inputs;
     }
